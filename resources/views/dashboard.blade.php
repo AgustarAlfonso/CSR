@@ -79,6 +79,14 @@
                                     </tr>
                                 @endforeach
                             </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="4" class="text-end">Total</th>
+                                    <th id="totalModal">0</th>
+                                    <th id="totalRealisasi">0</th>
+                                    <th id="totalSisa">0</th>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -92,6 +100,19 @@
     </div>
 
     <script>
+        function updateTotals() {
+            let totalModal = 0, totalRealisasi = 0, totalSisa = 0;
+            document.querySelectorAll("#csrTable tr").forEach(row => {
+                let cells = row.querySelectorAll("td");
+                totalModal += parseInt(cells[4].innerText.replace(/\./g, "")) || 0;
+                totalRealisasi += parseInt(cells[5].innerText.replace(/\./g, "")) || 0;
+                totalSisa += parseInt(cells[6].innerText.replace(/\./g, "")) || 0;
+            });
+            document.getElementById("totalModal").innerText = totalModal.toLocaleString("id-ID");
+            document.getElementById("totalRealisasi").innerText = totalRealisasi.toLocaleString("id-ID");
+            document.getElementById("totalSisa").innerText = totalSisa.toLocaleString("id-ID");
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
             document.querySelectorAll(".filter-checkbox").forEach(checkbox => {
                 checkbox.addEventListener("change", function() {
@@ -122,11 +143,11 @@
                                 <td>${csr.sisa_csr.toLocaleString('id-ID')}</td>
                             </tr>`;
                         });
-                        loadChartFromTable();
-                        loadBarChartFromTable();
+                        updateTotals();
                     });
                 });
             });
+            updateTotals();
         });
     </script>
 </body>
