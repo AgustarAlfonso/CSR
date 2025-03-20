@@ -6,6 +6,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Dashboard CSR</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 </head>
 <body>
     <div class="container-fluid">
@@ -79,21 +81,75 @@
                         </table>
                     </div>
                 </div>
+                <!-- Pie Chart -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5>Distribusi CSR</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="csrPieChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        function updateChart(data) {
+            let ctx = document.getElementById("csrPieChart").getContext("2d");
+            let total = data.modal + data.realisasi + data.sisa;
+            if (window.csrChart) {
+                window.csrChart.destroy();
+            }
+            window.csrChart = new Chart(ctx, {
+                type: "pie",
+                data: {
+                    labels: ["Modal CSR", "Realisasi CSR", "Sisa CSR"],
+                    datasets: [{
+                        data: [data.modal, data.realisasi, data.sisa],
+                        backgroundColor: ["#ff6384", "#36a2eb", "#ffce56"]
+                    }]
+                },
+                options: {
+                    plugins: {
+                        datalabels: {
+                            formatter: (value, ctx) => {
+                                let percentage = ((value / total) * 100).toFixed(2) + "%";
+                                return percentage;
+                            },
+                            color: "#fff",
+                            font: {
+                                weight: "bold"
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+
+        function loadChartFromTable() {
+            let totalModal = 0, totalRealisasi = 0, totalSisa = 0;
+            document.querySelectorAll("#csrTable tr").forEach(row => {
+                let cells = row.getElementsByTagName("td");
+                if (cells.length > 0) {
+                    totalModal += parseInt(cells[4].innerText.replace(/\./g, "")) || 0;
+                    totalRealisasi += parseInt(cells[5].innerText.replace(/\./g, "")) || 0;
+                    totalSisa += parseInt(cells[6].innerText.replace(/\./g, "")) || 0;
+                }
+            });
+            updateChart({ modal: totalModal, realisasi: totalRealisasi, sisa: totalSisa });
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
+            loadChartFromTable();
             document.querySelectorAll(".filter-checkbox").forEach(checkbox => {
                 checkbox.addEventListener("change", function() {
                     let filters = { sponsor: [], tahun: [], bulan: [] };
-
                     document.querySelectorAll(".filter-checkbox:checked").forEach(checkedBox => {
                         filters[checkedBox.dataset.filter].push(checkedBox.value);
                     });
-
                     fetch("{{ route('csr.filter') }}", {
                         method: "POST",
                         headers: {
@@ -107,18 +163,17 @@
                         let tbody = document.getElementById("csrTable");
                         tbody.innerHTML = "";
                         data.forEach(csr => {
-                            tbody.innerHTML += `
-                                <tr>
-                                    <td>${csr.nama_program}</td>
-                                    <td>${csr.sponsor}</td>
-                                    <td>${csr.tahun}</td>
-                                    <td>${csr.bulan}</td>
-                                    <td>${csr.modal_csr.toLocaleString('id-ID')}</td>
-                                    <td>${csr.realisasi_csr.toLocaleString('id-ID')}</td>
-                                    <td>${csr.sisa_csr.toLocaleString('id-ID')}</td>
-                                </tr>
-                            `;
+                            tbody.innerHTML += `<tr>
+                                <td>${csr.nama_program}</td>
+                                <td>${csr.sponsor}</td>
+                                <td>${csr.tahun}</td>
+                                <td>${csr.bulan}</td>
+                                <td>${csr.modal_csr.toLocaleString('id-ID')}</td>
+                                <td>${csr.realisasi_csr.toLocaleString('id-ID')}</td>
+                                <td>${csr.sisa_csr.toLocaleString('id-ID')}</td>
+                            </tr>`;
                         });
+                        loadChartFromTable();
                     });
                 });
             });
