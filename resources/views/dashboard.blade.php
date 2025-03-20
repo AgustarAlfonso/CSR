@@ -105,53 +105,53 @@
 
     <script>
 
-            let sortDirection = {}; // Simpan status sorting tiap kolom
+        let sortDirection = {}; // Simpan status sorting tiap kolom
 
-            function sortTable(columnIndex, thElement = null) {
-                let table = document.getElementById("csrTable");
-                let rows = Array.from(table.rows);
-                let isNumeric = columnIndex >= 4; // Kolom ke-4 ke atas adalah angka
+        function sortTable(columnIndex, thElement = null) {
+            let table = document.getElementById("csrTable");
+            let rows = Array.from(table.rows);
+            let isNumeric = columnIndex >= 4; // Kolom ke-4 ke atas adalah angka
 
-                // Toggle sorting direction
-                sortDirection[columnIndex] = sortDirection[columnIndex] === undefined ? true : !sortDirection[columnIndex];
+            // Toggle sorting direction
+            sortDirection[columnIndex] = sortDirection[columnIndex] === undefined ? true : !sortDirection[columnIndex];
 
-                rows.sort((rowA, rowB) => {
-                    let cellA = rowA.cells[columnIndex].textContent.trim();
-                    let cellB = rowB.cells[columnIndex].textContent.trim();
+            rows.sort((rowA, rowB) => {
+                let cellA = rowA.cells[columnIndex].textContent.trim();
+                let cellB = rowB.cells[columnIndex].textContent.trim();
 
-                    if (isNumeric) {
-                        cellA = parseInt(cellA.replace(/\./g, '')) || 0;
-                        cellB = parseInt(cellB.replace(/\./g, '')) || 0;
-                    }
-
-                    return sortDirection[columnIndex] ? (cellA > cellB ? 1 : -1) : (cellA < cellB ? 1 : -1);
-                });
-
-                // Update tabel dengan data yang sudah diurutkan
-                table.innerHTML = "";
-                rows.forEach(row => table.appendChild(row));
-
-                // Update total setelah sorting
-                updateTotals();
-
-                // Reset semua ikon sorting
-                document.querySelectorAll(".sort-icon").forEach(icon => {
-                    icon.textContent = ""; // Kosongkan semua ikon
-                });
-
-                // Tambahkan ikon pada kolom yang sedang di-sort
-                if (thElement) {
-                    thElement.querySelector(".sort-icon").textContent = sortDirection[columnIndex] ? " 🔽" : " 🔼";
+                if (isNumeric) {
+                    cellA = parseInt(cellA.replace(/\./g, '')) || 0;
+                    cellB = parseInt(cellB.replace(/\./g, '')) || 0;
                 }
-            }
 
-            // **3️⃣ Sort otomatis saat halaman pertama kali dimuat**
-            document.addEventListener("DOMContentLoaded", function() {
-                let defaultColumn = document.querySelector("th[data-default='true']");
-                if (defaultColumn) {
-                    sortTable(0, defaultColumn); // Urutkan kolom pertama secara default
-                }
+                return sortDirection[columnIndex] ? (cellA > cellB ? 1 : -1) : (cellA < cellB ? 1 : -1);
             });
+
+            // Update tabel dengan data yang sudah diurutkan
+            table.innerHTML = "";
+            rows.forEach(row => table.appendChild(row));
+
+            // Update total setelah sorting
+            updateTotals();
+
+            // Reset semua ikon sorting
+            document.querySelectorAll(".sort-icon").forEach(icon => {
+                icon.textContent = ""; // Kosongkan semua ikon
+            });
+
+            // Tambahkan ikon pada kolom yang sedang di-sort
+            if (thElement) {
+                thElement.querySelector(".sort-icon").textContent = sortDirection[columnIndex] ? " 🔽" : " 🔼";
+            }
+        }
+
+        // **3️⃣ Sort otomatis saat halaman pertama kali dimuat**
+        document.addEventListener("DOMContentLoaded", function() {
+            let defaultColumn = document.querySelector("th[data-default='true']");
+            if (defaultColumn) {
+                sortTable(0, defaultColumn); // Urutkan kolom pertama secara default
+            }
+        });
 
 
 
