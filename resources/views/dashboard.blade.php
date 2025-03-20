@@ -19,31 +19,28 @@
                     <div class="card-header">
                         <h5>Filter CSR</h5>
                     </div>
-                    <div class="card-body">
-                        <h6>Sponsor</h6>
-                        @foreach($sponsors as $sponsor)
-                            <div class="form-check">
-                                <input class="form-check-input filter-checkbox" type="checkbox" value="{{ $sponsor }}" data-filter="sponsor">
-                                <label class="form-check-label">{{ $sponsor }}</label>
-                            </div>
-                        @endforeach
-
-                        <h6 class="mt-3">Tahun</h6>
-                        @foreach($years as $year)
-                            <div class="form-check">
-                                <input class="form-check-input filter-checkbox" type="checkbox" value="{{ $year }}" data-filter="tahun">
-                                <label class="form-check-label">{{ $year }}</label>
-                            </div>
-                        @endforeach
-
-                        <h6 class="mt-3">Bulan</h6>
-                        @foreach($months as $month)
-                            <div class="form-check">
-                                <input class="form-check-input filter-checkbox" type="checkbox" value="{{ $month }}" data-filter="bulan">
-                                <label class="form-check-label">{{ $month }}</label>
-                            </div>
-                        @endforeach
-                    </div>
+                      <div class="card-body">
+                          <h6>Sponsor</h6>
+                          @foreach($sponsors as $sponsor)
+                              <button type="button" class="btn btn-outline-primary filter-toggle" data-filter="sponsor" data-value="{{ $sponsor }}" data-active="false">
+                                  {{ $sponsor }}
+                              </button>
+                          @endforeach
+  
+                          <h6 class="mt-3">Tahun</h6>
+                          @foreach($years as $year)
+                              <button type="button" class="btn btn-outline-primary filter-toggle" data-filter="tahun" data-value="{{ $year }}" data-active="false">
+                                  {{ $year }}
+                              </button>
+                          @endforeach
+  
+                          <h6 class="mt-3">Bulan</h6>
+                          @foreach($months as $month)
+                              <button type="button" class="btn btn-outline-primary filter-toggle" data-filter="bulan" data-value="{{ $month }}" data-active="false">
+                                  {{ $month }}
+                              </button>
+                          @endforeach
+                      </div>
                 </div>
             </div>
 
@@ -111,12 +108,18 @@
 
         document.addEventListener("DOMContentLoaded", function() {
             updateTotals();
-            document.querySelectorAll(".filter-checkbox").forEach(checkbox => {
-                checkbox.addEventListener("change", function() {
+              document.querySelectorAll(".filter-toggle").forEach(button => {
+                button.addEventListener("click", function() {
+                    let isActive = this.getAttribute("data-active") === "true";
+                    this.setAttribute("data-active", isActive ? "false" : "true");
+                    this.classList.toggle("btn-primary", !isActive);
+                    this.classList.toggle("btn-outline-primary", isActive);
+
                     let filters = { sponsor: [], tahun: [], bulan: [] };
-                    document.querySelectorAll(".filter-checkbox:checked").forEach(checkedBox => {
-                        filters[checkedBox.dataset.filter].push(checkedBox.value);
+                    document.querySelectorAll(".filter-toggle[data-active='true']").forEach(activeButton => {
+                        filters[activeButton.dataset.filter].push(activeButton.dataset.value);
                     });
+
                     fetch("{{ route('csr.filter') }}", {
                         method: "POST",
                         headers: {
