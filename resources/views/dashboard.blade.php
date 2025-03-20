@@ -33,6 +33,14 @@
                                   {{ $year }}
                               </button>
                           @endforeach
+
+                          @php
+                        $monthOrder = [
+                            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                        ];
+                        $months = collect($months)->sortBy(fn($month) => array_search($month, $monthOrder))->toArray();
+                        @endphp
   
                           <h6 class="mt-3">Bulan</h6>
                           @foreach($months as $month)
