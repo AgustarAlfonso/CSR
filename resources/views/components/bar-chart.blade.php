@@ -56,44 +56,45 @@
     }
 
     function loadBarChartFromTable() {
-        let dataLabels = [];
-        let dataRealisasi = [];
-        let dataModal = [];
-        let dataSisa = [];
+    let dataLabels = [];
+    let dataRealisasi = [];
+    let dataModal = [];
+    let dataSisa = [];
 
-        document.querySelectorAll("#csrTable tr").forEach(row => {
-            let cells = row.getElementsByTagName("td");
-            if (cells.length > 0) {
-                let sponsor = cells[1].innerText.trim();
-                let realisasi = parseInt(cells[5].innerText.replace(/\./g, "")) || 0;
-                let modal = parseInt(cells[4].innerText.replace(/\./g, "")) || 0;
-                let sisa = parseInt(cells[6].innerText.replace(/\./g, "")) || 0;
+    document.querySelectorAll("#csrTable tr").forEach(row => {
+        let cells = row.getElementsByTagName("td");
+        if (cells.length > 0) {
+            let sponsor = cells[1].innerText.trim();
+            let realisasi = parseInt(cells[5].innerText.replace(/\./g, "")) || 0;
+            let modal = parseInt(cells[4].innerText.replace(/\./g, "")) || 0;
+            let sisa = parseInt(cells[6].innerText.replace(/\./g, "")) || 0;
 
-                let index = dataLabels.indexOf(sponsor);
-                if (index === -1) {
-                    dataLabels.push(sponsor);
-                    dataRealisasi.push(realisasi);
-                    dataModal.push(modal);
-                    dataSisa.push(sisa);
-                } else {
-                    dataRealisasi[index] += realisasi;
-                    dataModal[index] += modal;
-                    dataSisa[index] += sisa;
-                }
+            let index = dataLabels.indexOf(sponsor);
+            if (index === -1) {
+                dataLabels.push(sponsor);
+                dataRealisasi.push(realisasi);
+                dataModal.push(modal);
+                dataSisa.push(sisa);
+            } else {
+                dataRealisasi[index] += realisasi;
+                dataModal[index] += modal;
+                dataSisa[index] += sisa;
             }
-        });
-
-        console.log("Data Labels:", dataLabels);
-        console.log("Data Realisasi:", dataRealisasi);
-        console.log("Data Modal:", dataModal);
-        console.log("Data Sisa:", dataSisa);
-
-        if (dataLabels.length === 0 || dataRealisasi.length === 0) {
-            console.warn("Data kosong! Pastikan tabel memiliki isi.");
-        } else {
-            updateBarChart({ labels: dataLabels, realisasi: dataRealisasi, modal: dataModal, sisa: dataSisa });
         }
+    });
+
+    if (dataLabels.length === 0) {
+        console.warn("Data kosong! Menghapus chart.");
+        if (window.csrBarChart instanceof Chart) {
+            window.csrBarChart.destroy();
+            window.csrBarChart = null;
+        }
+        return;
     }
+
+    updateBarChart({ labels: dataLabels, realisasi: dataRealisasi, modal: dataModal, sisa: dataSisa });
+}
+
 
     window.onload = function () {
         loadBarChartFromTable();
