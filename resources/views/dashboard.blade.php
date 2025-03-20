@@ -62,13 +62,13 @@
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th>Nama Program</th>
-                                    <th>Sponsor</th>
-                                    <th>Tahun</th>
-                                    <th>Bulan</th>
-                                    <th>Modal CSR (Rp)</th>
-                                    <th>Realisasi CSR (Rp)</th>
-                                    <th>Sisa CSR (Rp)</th>
+                                    <th onclick="sortTable(0, this)" data-default="true">Nama Program <span class="sort-icon"> 🔽</span></th>
+                                    <th onclick="sortTable(1, this)">Sponsor <span class="sort-icon"></span></th>
+                                    <th onclick="sortTable(2, this)">Tahun <span class="sort-icon"></span></th>
+                                    <th onclick="sortTable(3, this)">Bulan <span class="sort-icon"></span></th>
+                                    <th onclick="sortTable(4, this)">Modal CSR (Rp) <span class="sort-icon"></span></th>
+                                    <th onclick="sortTable(5, this)">Realisasi CSR (Rp) <span class="sort-icon"></span></th>
+                                    <th onclick="sortTable(6, this)">Sisa CSR (Rp) <span class="sort-icon"></span></th>
                                 </tr>
                             </thead>
                             <tbody id="csrTable">
@@ -104,6 +104,57 @@
     </div>
 
     <script>
+
+            let sortDirection = {}; // Simpan status sorting tiap kolom
+
+            function sortTable(columnIndex, thElement = null) {
+                let table = document.getElementById("csrTable");
+                let rows = Array.from(table.rows);
+                let isNumeric = columnIndex >= 4; // Kolom ke-4 ke atas adalah angka
+
+                // Toggle sorting direction
+                sortDirection[columnIndex] = sortDirection[columnIndex] === undefined ? true : !sortDirection[columnIndex];
+
+                rows.sort((rowA, rowB) => {
+                    let cellA = rowA.cells[columnIndex].textContent.trim();
+                    let cellB = rowB.cells[columnIndex].textContent.trim();
+
+                    if (isNumeric) {
+                        cellA = parseInt(cellA.replace(/\./g, '')) || 0;
+                        cellB = parseInt(cellB.replace(/\./g, '')) || 0;
+                    }
+
+                    return sortDirection[columnIndex] ? (cellA > cellB ? 1 : -1) : (cellA < cellB ? 1 : -1);
+                });
+
+                // Update tabel dengan data yang sudah diurutkan
+                table.innerHTML = "";
+                rows.forEach(row => table.appendChild(row));
+
+                // Update total setelah sorting
+                updateTotals();
+
+                // Reset semua ikon sorting
+                document.querySelectorAll(".sort-icon").forEach(icon => {
+                    icon.textContent = ""; // Kosongkan semua ikon
+                });
+
+                // Tambahkan ikon pada kolom yang sedang di-sort
+                if (thElement) {
+                    thElement.querySelector(".sort-icon").textContent = sortDirection[columnIndex] ? " 🔽" : " 🔼";
+                }
+            }
+
+            // **3️⃣ Sort otomatis saat halaman pertama kali dimuat**
+            document.addEventListener("DOMContentLoaded", function() {
+                let defaultColumn = document.querySelector("th[data-default='true']");
+                if (defaultColumn) {
+                    sortTable(0, defaultColumn); // Urutkan kolom pertama secara default
+                }
+            });
+
+
+
         function updateTotals() {
             let totalModal = 0, totalRealisasi = 0, totalSisa = 0;
             document.querySelectorAll(".modal-csr").forEach(el => totalModal += parseInt(el.textContent.replace(/\./g, '')) || 0);
