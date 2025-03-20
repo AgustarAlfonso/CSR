@@ -73,9 +73,9 @@
                                         <td>{{ $csr->sponsor }}</td>
                                         <td>{{ $csr->tahun }}</td>
                                         <td>{{ $csr->bulan }}</td>
-                                        <td>{{ number_format($csr->modal_csr, 0, ',', '.') }}</td>
-                                        <td>{{ number_format($csr->realisasi_csr, 0, ',', '.') }}</td>
-                                        <td>{{ number_format($csr->sisa_csr, 0, ',', '.') }}</td>
+                                        <td class="modal-csr">{{ number_format($csr->modal_csr, 0, ',', '.') }}</td>
+                                        <td class="realisasi-csr">{{ number_format($csr->realisasi_csr, 0, ',', '.') }}</td>
+                                        <td class="sisa-csr">{{ number_format($csr->sisa_csr, 0, ',', '.') }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -94,7 +94,6 @@
                 <!-- Gunakan Komponen Pie Chart -->
                 <x-pie-chart />
                 <x-bar-chart />
-
             </div>
         </div>
     </div>
@@ -102,18 +101,16 @@
     <script>
         function updateTotals() {
             let totalModal = 0, totalRealisasi = 0, totalSisa = 0;
-            document.querySelectorAll("#csrTable tr").forEach(row => {
-                let cells = row.querySelectorAll("td");
-                totalModal += parseInt(cells[4].innerText.replace(/\./g, "")) || 0;
-                totalRealisasi += parseInt(cells[5].innerText.replace(/\./g, "")) || 0;
-                totalSisa += parseInt(cells[6].innerText.replace(/\./g, "")) || 0;
-            });
-            document.getElementById("totalModal").innerText = totalModal.toLocaleString("id-ID");
-            document.getElementById("totalRealisasi").innerText = totalRealisasi.toLocaleString("id-ID");
-            document.getElementById("totalSisa").innerText = totalSisa.toLocaleString("id-ID");
+            document.querySelectorAll(".modal-csr").forEach(el => totalModal += parseInt(el.textContent.replace(/\./g, '')) || 0);
+            document.querySelectorAll(".realisasi-csr").forEach(el => totalRealisasi += parseInt(el.textContent.replace(/\./g, '')) || 0);
+            document.querySelectorAll(".sisa-csr").forEach(el => totalSisa += parseInt(el.textContent.replace(/\./g, '')) || 0);
+            document.getElementById("totalModal").textContent = totalModal.toLocaleString('id-ID');
+            document.getElementById("totalRealisasi").textContent = totalRealisasi.toLocaleString('id-ID');
+            document.getElementById("totalSisa").textContent = totalSisa.toLocaleString('id-ID');
         }
 
         document.addEventListener("DOMContentLoaded", function() {
+            updateTotals();
             document.querySelectorAll(".filter-checkbox").forEach(checkbox => {
                 checkbox.addEventListener("change", function() {
                     let filters = { sponsor: [], tahun: [], bulan: [] };
@@ -138,16 +135,17 @@
                                 <td>${csr.sponsor}</td>
                                 <td>${csr.tahun}</td>
                                 <td>${csr.bulan}</td>
-                                <td>${csr.modal_csr.toLocaleString('id-ID')}</td>
-                                <td>${csr.realisasi_csr.toLocaleString('id-ID')}</td>
-                                <td>${csr.sisa_csr.toLocaleString('id-ID')}</td>
+                                <td class="modal-csr">${csr.modal_csr.toLocaleString('id-ID')}</td>
+                                <td class="realisasi-csr">${csr.realisasi_csr.toLocaleString('id-ID')}</td>
+                                <td class="sisa-csr">${csr.sisa_csr.toLocaleString('id-ID')}</td>
                             </tr>`;
                         });
                         updateTotals();
+                        loadChartFromTable();
+                        loadBarChartFromTable();
                     });
                 });
             });
-            updateTotals();
         });
     </script>
 </body>
