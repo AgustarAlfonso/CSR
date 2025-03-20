@@ -85,6 +85,8 @@
 
                 <!-- Gunakan Komponen Pie Chart -->
                 <x-pie-chart />
+                <x-bar-chart />
+
             </div>
         </div>
     </div>
@@ -121,6 +123,7 @@
                             </tr>`;
                         });
                         loadChartFromTable();
+                        loadBarChartFromTable();
                     });
                 });
             });
