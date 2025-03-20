@@ -20,13 +20,29 @@
             type: "bar",
             data: {
                 labels: data.labels,
-                datasets: [{
-                    label: "Realisasi CSR (Rp)",
-                    data: data.values,
-                    backgroundColor: "#36a2eb",
-                    borderColor: "#1e88e5",
-                    borderWidth: 1
-                }]
+                datasets: [
+                    {
+                        label: "Modal CSR (Rp)",
+                        data: data.modal,
+                        backgroundColor: "#ff6384",
+                        borderColor: "#d32f2f",
+                        borderWidth: 1
+                    },
+                    {
+                        label: "Realisasi CSR (Rp)",
+                        data: data.realisasi,
+                        backgroundColor: "#36a2eb",
+                        borderColor: "#1e88e5",
+                        borderWidth: 1
+                    },
+                    {
+                        label: "Sisa CSR (Rp)",
+                        data: data.sisa,
+                        backgroundColor: "#4caf50",
+                        borderColor: "#388e3c",
+                        borderWidth: 1
+                    }
+                ]
             },
             options: {
                 responsive: true,
@@ -41,31 +57,41 @@
 
     function loadBarChartFromTable() {
         let dataLabels = [];
-        let dataValues = [];
+        let dataRealisasi = [];
+        let dataModal = [];
+        let dataSisa = [];
 
         document.querySelectorAll("#csrTable tr").forEach(row => {
             let cells = row.getElementsByTagName("td");
             if (cells.length > 0) {
                 let sponsor = cells[1].innerText.trim();
                 let realisasi = parseInt(cells[5].innerText.replace(/\./g, "")) || 0;
+                let modal = parseInt(cells[4].innerText.replace(/\./g, "")) || 0;
+                let sisa = parseInt(cells[6].innerText.replace(/\./g, "")) || 0;
 
                 let index = dataLabels.indexOf(sponsor);
                 if (index === -1) {
                     dataLabels.push(sponsor);
-                    dataValues.push(realisasi);
+                    dataRealisasi.push(realisasi);
+                    dataModal.push(modal);
+                    dataSisa.push(sisa);
                 } else {
-                    dataValues[index] += realisasi;
+                    dataRealisasi[index] += realisasi;
+                    dataModal[index] += modal;
+                    dataSisa[index] += sisa;
                 }
             }
         });
 
         console.log("Data Labels:", dataLabels);
-        console.log("Data Values:", dataValues);
+        console.log("Data Realisasi:", dataRealisasi);
+        console.log("Data Modal:", dataModal);
+        console.log("Data Sisa:", dataSisa);
 
-        if (dataLabels.length === 0 || dataValues.length === 0) {
+        if (dataLabels.length === 0 || dataRealisasi.length === 0) {
             console.warn("Data kosong! Pastikan tabel memiliki isi.");
         } else {
-            updateBarChart({ labels: dataLabels, values: dataValues });
+            updateBarChart({ labels: dataLabels, realisasi: dataRealisasi, modal: dataModal, sisa: dataSisa });
         }
     }
 
