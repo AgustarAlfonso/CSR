@@ -38,8 +38,8 @@
                     {
                         label: "Sisa CSR (Rp)",
                         data: data.sisa,
-                        backgroundColor: "#4caf50",
-                        borderColor: "#388e3c",
+                        backgroundColor: "#ffce56",
+                        borderColor: "#ffce56",
                         borderWidth: 1
                     }
                 ]
