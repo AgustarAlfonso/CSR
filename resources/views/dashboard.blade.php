@@ -19,39 +19,39 @@
                     <div class="card-header">
                         <h5>Filter CSR</h5>
                     </div>
-                      <div class="card-body">
-                          <h6>Sponsor</h6>
-                          @foreach($sponsors as $sponsor)
-                              <button type="button" class="btn btn-outline-primary filter-toggle" data-filter="sponsor" data-value="{{ $sponsor }}" data-active="false">
-                                  {{ $sponsor }}
-                              </button>
-                          @endforeach
-  
-                          <h6 class="mt-3">Tahun</h6>
-                          @foreach($years as $year)
-                              <button type="button" class="btn btn-outline-primary filter-toggle" data-filter="tahun" data-value="{{ $year }}" data-active="false">
-                                  {{ $year }}
-                              </button>
-                          @endforeach
-
-                          @php
+                    <div class="card-body">
+                        <h6>Pemegang Saham</h6>
+                        @foreach($pemegang_saham as $saham)
+                            <button type="button" class="btn btn-outline-primary filter-toggle" data-filter="pemegang_saham" data-value="{{ $saham }}" data-active="false">
+                                {{ $saham }}
+                            </button>
+                        @endforeach
+    
+                        <h6 class="mt-3">Tahun</h6>
+                        @foreach($years as $year)
+                            <button type="button" class="btn btn-outline-primary filter-toggle" data-filter="tahun" data-value="{{ $year }}" data-active="false">
+                                {{ $year }}
+                            </button>
+                        @endforeach
+    
+                        @php
                         $monthOrder = [
                             'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
                             'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
                         ];
                         $months = collect($months)->sortBy(fn($month) => array_search($month, $monthOrder))->toArray();
                         @endphp
-  
-                          <h6 class="mt-3">Bulan</h6>
-                          @foreach($months as $month)
-                              <button type="button" class="btn btn-outline-primary filter-toggle" data-filter="bulan" data-value="{{ $month }}" data-active="false">
-                                  {{ $month }}
-                              </button>
-                          @endforeach
-                      </div>
+    
+                        <h6 class="mt-3">Bulan</h6>
+                        @foreach($months as $month)
+                            <button type="button" class="btn btn-outline-primary filter-toggle" data-filter="bulan" data-value="{{ $month }}" data-active="false">
+                                {{ $month }}
+                            </button>
+                        @endforeach
+                    </div>
                 </div>
             </div>
-
+    
             <!-- Tabel CSR -->
             <div class="col-md-9">
                 <div class="card mt-3">
@@ -63,38 +63,36 @@
                             <thead>
                                 <tr>
                                     <th onclick="sortTable(0, this)" data-default="true">Nama Program <span class="sort-icon"> 🔽</span></th>
-                                    <th onclick="sortTable(1, this)">Sponsor <span class="sort-icon"></span></th>
+                                    <th onclick="sortTable(1, this)">Pemegang Saham <span class="sort-icon"></span></th>
                                     <th onclick="sortTable(2, this)">Tahun <span class="sort-icon"></span></th>
                                     <th onclick="sortTable(3, this)">Bulan <span class="sort-icon"></span></th>
-                                    <th onclick="sortTable(4, this)">Modal CSR (Rp) <span class="sort-icon"></span></th>
-                                    <th onclick="sortTable(5, this)">Realisasi CSR (Rp) <span class="sort-icon"></span></th>
-                                    <th onclick="sortTable(6, this)">Sisa CSR (Rp) <span class="sort-icon"></span></th>
+                                    <th onclick="sortTable(4, this)">Realisasi CSR (Rp) <span class="sort-icon"></span></th>
                                 </tr>
                             </thead>
                             <tbody id="csrTable">
                                 @foreach($csrs as $csr)
                                     <tr>
                                         <td>{{ $csr->nama_program }}</td>
-                                        <td>{{ $csr->sponsor }}</td>
+                                        <td>{{ $csr->pemegang_saham }}</td>
                                         <td>{{ $csr->tahun }}</td>
                                         <td>{{ $csr->bulan }}</td>
-                                        <td class="modal-csr">{{ number_format($csr->modal_csr, 0, ',', '.') }}</td>
                                         <td class="realisasi-csr">{{ number_format($csr->realisasi_csr, 0, ',', '.') }}</td>
-                                        <td class="sisa-csr">{{ number_format($csr->sisa_csr, 0, ',', '.') }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
                             <tfoot>
                                 <tr>
                                     <th colspan="4" class="text-end">Total</th>
-                                    <th id="totalModal">0</th>
                                     <th id="totalRealisasi">0</th>
-                                    <th id="totalSisa">0</th>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    
 
                 <!-- Gunakan Komponen Pie Chart -->
                 <x-pie-chart />
@@ -157,12 +155,9 @@
 
         function updateTotals() {
             let totalModal = 0, totalRealisasi = 0, totalSisa = 0;
-            document.querySelectorAll(".modal-csr").forEach(el => totalModal += parseInt(el.textContent.replace(/\./g, '')) || 0);
             document.querySelectorAll(".realisasi-csr").forEach(el => totalRealisasi += parseInt(el.textContent.replace(/\./g, '')) || 0);
-            document.querySelectorAll(".sisa-csr").forEach(el => totalSisa += parseInt(el.textContent.replace(/\./g, '')) || 0);
-            document.getElementById("totalModal").textContent = totalModal.toLocaleString('id-ID');
             document.getElementById("totalRealisasi").textContent = totalRealisasi.toLocaleString('id-ID');
-            document.getElementById("totalSisa").textContent = totalSisa.toLocaleString('id-ID');
+
         }
 
         document.addEventListener("DOMContentLoaded", function() {
@@ -174,7 +169,7 @@
                     this.classList.toggle("btn-primary", !isActive);
                     this.classList.toggle("btn-outline-primary", isActive);
 
-                    let filters = { sponsor: [], tahun: [], bulan: [] };
+                    let filters = { pemegang_saham: [], tahun: [], bulan: [] };
                     document.querySelectorAll(".filter-toggle[data-active='true']").forEach(activeButton => {
                         filters[activeButton.dataset.filter].push(activeButton.dataset.value);
                     });
@@ -194,12 +189,10 @@
                         data.forEach(csr => {
                             tbody.innerHTML += `<tr>
                                 <td>${csr.nama_program}</td>
-                                <td>${csr.sponsor}</td>
+                                <td>${csr.pemegang_saham}</td>
                                 <td>${csr.tahun}</td>
                                 <td>${csr.bulan}</td>
-                                <td class="modal-csr">${csr.modal_csr.toLocaleString('id-ID')}</td>
                                 <td class="realisasi-csr">${csr.realisasi_csr.toLocaleString('id-ID')}</td>
-                                <td class="sisa-csr">${csr.sisa_csr.toLocaleString('id-ID')}</td>
                             </tr>`;
                         });
                         updateTotals();

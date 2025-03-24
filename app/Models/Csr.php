@@ -10,5 +10,13 @@ class Csr extends Model
     use HasFactory;
 
     protected $table = 'csrs';
-    protected $fillable = ['nama_program', 'sponsor', 'tahun', 'bulan', 'modal_csr', 'realisasi_csr', 'sisa_csr'];
+    protected $fillable = [
+        'nama_program', 
+        'bidang_kegiatan', 
+        'pemegang_saham', 
+        'bulan', 
+        'tahun', 
+        'realisasi_csr', 
+        'ket'
+    ];
 }

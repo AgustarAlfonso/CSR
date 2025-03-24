@@ -10,19 +10,30 @@ class CsrController extends Controller
     public function index()
     {
         $csrs = Csr::all();
-        $sponsors = Csr::distinct()->pluck('sponsor');
+        $pemegang_saham = Csr::distinct()->pluck('pemegang_saham');
         $years = Csr::distinct()->pluck('tahun');
         $months = Csr::distinct()->pluck('bulan');
 
-        return view('dashboard', compact('csrs', 'sponsors', 'years', 'months'));
+        return view('dashboard', compact('csrs', 'pemegang_saham', 'years', 'months'));
     }
 
-    public function filter(Request $request)
+/*************  ✨ Codeium Command ⭐  *************/
+    /**
+     * Filter the CSR records based on request parameters and return the filtered results as JSON.
+     *
+     * @param Request $request The HTTP request containing filter parameters.
+     *                         - sponsor: array of sponsors to filter by.
+     *                         - tahun: array of years to filter by.
+     *                         - bulan: array of months to filter by.
+     * @return \Illuminate\Http\JsonResponse The filtered CSR records.
+     */
+
+/******  e1c7f3fd-5b5e-4b16-aeb8-dc4c17c700f0  *******/    public function filter(Request $request)
     {
         $query = Csr::query();
 
-        if (!empty($request->sponsor)) {
-            $query->whereIn('sponsor', $request->sponsor);
+        if (!empty($request->pemegang_saham)) {
+            $query->whereIn('pemegang_saham', $request->pemegang_saham);
         }
 
         if (!empty($request->tahun)) {
