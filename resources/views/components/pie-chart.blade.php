@@ -1,6 +1,10 @@
 <div class="card mt-3">
     <div class="card-header">
-        <h5>Distribusi CSR per Pemegang Saham</h5>
+        <h5>Distribusi CSR</h5>
+        <div class="btn-group" role="group" aria-label="Chart Toggle">
+            <button type="button" class="btn btn-primary" id="togglePemegangSaham">Pemegang Saham</button>
+            <button type="button" class="btn btn-outline-primary" id="toggleBidangKegiatan">Bidang Kegiatan</button>
+        </div>
     </div>
     <div class="card-body">
         <canvas id="csrPieChart"></canvas>
@@ -8,17 +12,10 @@
 </div>
 
 <script>
-    function updateChart(data) {
-        let ctx = document.getElementById("csrPieChart").getContext("2d");
-        let labels = data.map(item => item.pemegang_saham);
-        let values = data.map(item => item.total);
-        let backgroundColors = [
-            "#ff6384", "#36a2eb", "#ffce56", "#4bc0c0", "#9966ff", "#ff9f40",
-            "#c9cbcf", "#ff4500", "#32cd32", "#8a2be2", "#00ced1", "#dc143c",
-            "#ffa500", "#228b22", "#1e90ff", "#ff1493", "#8b0000", "#20b2aa",
-            "#d2691e", "#6495ed", "#7f8c8d"
-        ];
+    let currentChartType = "pemegang_saham";
 
+    function updateChart(data, labels) {
+        let ctx = document.getElementById("csrPieChart").getContext("2d");
         if (window.csrChart) {
             window.csrChart.destroy();
         }
@@ -27,47 +24,59 @@
             data: {
                 labels: labels,
                 datasets: [{
-                    data: values,
-                    backgroundColor: backgroundColors.slice(0, labels.length)
+                    data: data,
+                    backgroundColor: [
+                        "#ff6384", "#36a2eb", "#ffce56", "#8e5ea2", "#3cba9f",
+                        "#e8c3b9", "#c45850", "#ff9f40", "#4bc0c0", "#9966ff",
+                        "#ff6384", "#36a2eb", "#ffce56", "#8e5ea2", "#3cba9f",
+                        "#e8c3b9", "#c45850", "#ff9f40", "#4bc0c0", "#9966ff", "#ffcd56"
+                    ]
                 }]
             },
             options: {
                 plugins: {
                     datalabels: {
-                        formatter: (value, ctx) => {
-                            let total = values.reduce((acc, val) => acc + val, 0);
-                            return ((value / total) * 100).toFixed(2) + "%";
-                        },
+                        formatter: (value, ctx) => ((value / ctx.dataset.data.reduce((a, b) => a + b, 0)) * 100).toFixed(2) + "%",
                         color: "#fff",
                         font: { weight: "bold" }
                     }
                 }
-            }
+            },
+            plugins: [ChartDataLabels]
         });
     }
 
     function loadChartFromTable() {
-        let pemegangSahamTotals = {};
-
+        let dataMap = {};
+        let labelColumn = currentChartType === "pemegang_saham" ? 1 : 2;
         document.querySelectorAll("#csrTable tr").forEach(row => {
             let cells = row.getElementsByTagName("td");
             if (cells.length > 0) {
-                let pemegangSaham = cells[1].innerText.trim();
-                let realisasi = parseInt(cells[5].innerText.replace(/\./g, "")) || 0;
-                if (!pemegangSahamTotals[pemegangSaham]) {
-                    pemegangSahamTotals[pemegangSaham] = 0;
-                }
-                pemegangSahamTotals[pemegangSaham] += realisasi;
+                let label = cells[labelColumn].innerText.trim();
+                let value = parseInt(cells[5].innerText.replace(/\./g, "")) || 0;
+                dataMap[label] = (dataMap[label] || 0) + value;
             }
         });
-
-        let chartData = Object.keys(pemegangSahamTotals).map(key => ({
-            pemegang_saham: key,
-            total: pemegangSahamTotals[key]
-        }));
-
-        updateChart(chartData);
+        updateChart(Object.values(dataMap), Object.keys(dataMap));
     }
+
+    document.getElementById("togglePemegangSaham").addEventListener("click", function() {
+        currentChartType = "pemegang_saham";
+        this.classList.add("btn-primary");
+        this.classList.remove("btn-outline-primary");
+        document.getElementById("toggleBidangKegiatan").classList.remove("btn-primary");
+        document.getElementById("toggleBidangKegiatan").classList.add("btn-outline-primary");
+        loadChartFromTable();
+    });
+
+    document.getElementById("toggleBidangKegiatan").addEventListener("click", function() {
+        currentChartType = "bidang_kegiatan";
+        this.classList.add("btn-primary");
+        this.classList.remove("btn-outline-primary");
+        document.getElementById("togglePemegangSaham").classList.remove("btn-primary");
+        document.getElementById("togglePemegangSaham").classList.add("btn-outline-primary");
+        loadChartFromTable();
+    });
 
     document.addEventListener("DOMContentLoaded", loadChartFromTable);
 </script>
