@@ -26,6 +26,13 @@
                                 {{ $saham }}
                             </button>
                         @endforeach
+
+                        <h6 class="mt-3">Bidang Kegiatan</h6>
+                        @foreach($bidang_kegiatan as $kegiatan)
+                            <button type="button" class="btn btn-outline-primary filter-toggle" data-filter="bidang_kegiatan" data-value="{{ $kegiatan }}" data-active="false">
+                                {{ $kegiatan }}
+                            </button>
+                        @endforeach
     
                         <h6 class="mt-3">Tahun</h6>
                         @foreach($years as $year)
@@ -64,9 +71,10 @@
                                 <tr>
                                     <th onclick="sortTable(0, this)" data-default="true">Nama Program <span class="sort-icon"> 🔽</span></th>
                                     <th onclick="sortTable(1, this)">Pemegang Saham <span class="sort-icon"></span></th>
-                                    <th onclick="sortTable(2, this)">Tahun <span class="sort-icon"></span></th>
-                                    <th onclick="sortTable(3, this)">Bulan <span class="sort-icon"></span></th>
-                                    <th onclick="sortTable(4, this)">Realisasi CSR (Rp) <span class="sort-icon"></span></th>
+                                    <th onclick="sortTable(2, this)">Bidang Kegiatan <span class="sort-icon"></span></th>
+                                    <th onclick="sortTable(3, this)">Tahun <span class="sort-icon"></span></th>
+                                    <th onclick="sortTable(4, this)">Bulan <span class="sort-icon"></span></th>
+                                    <th onclick="sortTable(5, this)">Realisasi CSR (Rp) <span class="sort-icon"></span></th>
                                 </tr>
                             </thead>
                             <tbody id="csrTable">
@@ -74,6 +82,7 @@
                                     <tr>
                                         <td>{{ $csr->nama_program }}</td>
                                         <td>{{ $csr->pemegang_saham }}</td>
+                                        <td>{{ $csr->bidang_kegiatan}}</td>
                                         <td>{{ $csr->tahun }}</td>
                                         <td>{{ $csr->bulan }}</td>
                                         <td class="realisasi-csr">{{ number_format($csr->realisasi_csr, 0, ',', '.') }}</td>
@@ -82,7 +91,7 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th colspan="4" class="text-end">Total</th>
+                                    <th colspan="5" class="text-end">Total</th>
                                     <th id="totalRealisasi">0</th>
                                 </tr>
                             </tfoot>
@@ -108,7 +117,7 @@
         function sortTable(columnIndex, thElement = null) {
             let table = document.getElementById("csrTable");
             let rows = Array.from(table.rows);
-            let isNumeric = columnIndex >= 4; // Kolom ke-4 ke atas adalah angka
+            let isNumeric = columnIndex >= 5; // Kolom ke-4 ke atas adalah angka
 
             // Toggle sorting direction
             sortDirection[columnIndex] = sortDirection[columnIndex] === undefined ? true : !sortDirection[columnIndex];
@@ -169,7 +178,7 @@
                     this.classList.toggle("btn-primary", !isActive);
                     this.classList.toggle("btn-outline-primary", isActive);
 
-                    let filters = { pemegang_saham: [], tahun: [], bulan: [] };
+                    let filters = { pemegang_saham: [], bidang_kegiatan: [], tahun: [], bulan: [] };
                     document.querySelectorAll(".filter-toggle[data-active='true']").forEach(activeButton => {
                         filters[activeButton.dataset.filter].push(activeButton.dataset.value);
                     });
@@ -190,6 +199,7 @@
                             tbody.innerHTML += `<tr>
                                 <td>${csr.nama_program}</td>
                                 <td>${csr.pemegang_saham}</td>
+                                <td>${csr.bidang_kegiatan}</td>
                                 <td>${csr.tahun}</td>
                                 <td>${csr.bulan}</td>
                                 <td class="realisasi-csr">${csr.realisasi_csr.toLocaleString('id-ID')}</td>
