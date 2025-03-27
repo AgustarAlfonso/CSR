@@ -23,19 +23,19 @@ class CsrController extends Controller
         $query = Csr::query();
     
         if (!empty($request->pemegang_saham)) {
-            $query->whereIn('pemegang_saham', $request->pemegang_saham);
+            $query->whereIn('pemegang_saham', (array) $request->pemegang_saham);
         }
-    
+        
         if (!empty($request->tahun)) {
-            $query->whereIn('tahun', $request->tahun);
+            $query->whereIn('tahun', (array) $request->tahun);
         }
-    
+        
         if (!empty($request->bulan)) {
-            $query->whereIn('bulan', $request->bulan);
+            $query->whereIn('bulan', (array) $request->bulan);
         }
-    
-        if (!empty($request->bidang_kegiatan)) { // Tambahkan filter bidang_kegiatan
-            $query->whereIn('bidang_kegiatan', $request->bidang_kegiatan);
+        
+        if (!empty($request->bidang_kegiatan)) {
+            $query->whereIn('bidang_kegiatan', (array) $request->bidang_kegiatan);
         }
     
         return response()->json($query->get());

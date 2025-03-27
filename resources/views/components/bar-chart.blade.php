@@ -49,34 +49,33 @@
         });
     }
 
-    function loadBarChartFromTable() {
-        let filters = { pemegang_saham: [], bidang_kegiatan: [], tahun: [], bulan: [] };
-        document.querySelectorAll(".filter-toggle[data-active='true']").forEach(button => {
-            filters[button.dataset.filter].push(button.dataset.value);
-        });
+    function loadBarChartFromAPI() {
+        let filters = {
+            pemegang_saham: $('#pemegang_saham').val(),
+            bidang_kegiatan: $('#bidang_kegiatan').val(),
+            tahun: $('#tahun').val(),
+            bulan: $('#bulan').val(),
+        };
 
-        let dataMap = {};
-        let labelColumn = currentBarChartType === "pemegang_saham" ? 1 : 2;
-        document.querySelectorAll("#csrTable tr").forEach(row => {
-            let cells = row.getElementsByTagName("td");
-            if (cells.length > 0) {
-                let label = cells[labelColumn].innerText.trim();
-                let tahun = cells[3].innerText.trim();
-                let bulan = cells[4].innerText.trim();
-                let value = parseInt(cells[5].innerText.replace(/\./g, "")) || 0;
-
-                if (
-                    (filters.pemegang_saham.length === 0 || filters.pemegang_saham.includes(cells[1].innerText.trim())) &&
-                    (filters.bidang_kegiatan.length === 0 || filters.bidang_kegiatan.includes(cells[2].innerText.trim())) &&
-                    (filters.tahun.length === 0 || filters.tahun.includes(tahun)) &&
-                    (filters.bulan.length === 0 || filters.bulan.includes(bulan))
-                ) {
+        $.ajax({
+            url: '{{ route("csr.filter") }}',
+            type: 'POST',
+            data: filters,
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function(response) {
+                let dataMap = {};
+                response.forEach(item => {
+                    let label = currentBarChartType === "pemegang_saham" ? item.pemegang_saham : item.bidang_kegiatan;
+                    let value = parseInt(item.realisasi_csr.replace(/\./g, "")) || 0;
                     dataMap[label] = (dataMap[label] || 0) + value;
-                }
+                });
+
+                updateBarChart(Object.values(dataMap), Object.keys(dataMap));
+            },
+            error: function(xhr) {
+                console.error(xhr.responseText);
             }
         });
-
-        updateBarChart(Object.values(dataMap), Object.keys(dataMap));
     }
 
     document.getElementById("toggleBarPemegangSaham").addEventListener("click", function() {
@@ -85,7 +84,7 @@
         this.classList.remove("btn-outline-primary");
         document.getElementById("toggleBarBidangKegiatan").classList.remove("btn-primary");
         document.getElementById("toggleBarBidangKegiatan").classList.add("btn-outline-primary");
-        loadBarChartFromTable();
+        loadBarChartFromAPI();
     });
 
     document.getElementById("toggleBarBidangKegiatan").addEventListener("click", function() {
@@ -94,10 +93,16 @@
         this.classList.remove("btn-outline-primary");
         document.getElementById("toggleBarPemegangSaham").classList.remove("btn-primary");
         document.getElementById("toggleBarPemegangSaham").classList.add("btn-outline-primary");
-        loadBarChartFromTable();
+        loadBarChartFromAPI();
     });
 
-    document.addEventListener("DOMContentLoaded", loadBarChartFromTable);
+    // Event listener untuk filter agar data otomatis terupdate
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll("#pemegang_saham, #bidang_kegiatan, #tahun, #bulan").forEach(element => {
+            element.addEventListener("change", loadBarChartFromAPI);
+        });
+
+        // Load pertama kali
+        loadBarChartFromAPI();
+    });
 </script>
-
-

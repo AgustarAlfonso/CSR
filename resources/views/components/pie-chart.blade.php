@@ -46,18 +46,40 @@
         });
     }
 
-    function loadChartFromTable() {
-        let dataMap = {};
-        let labelColumn = currentChartType === "pemegang_saham" ? 1 : 2;
-        document.querySelectorAll("#csrTable tr").forEach(row => {
-            let cells = row.getElementsByTagName("td");
-            if (cells.length > 0) {
-                let label = cells[labelColumn].innerText.trim();
-                let value = parseInt(cells[5].innerText.replace(/\./g, "")) || 0;
-                dataMap[label] = (dataMap[label] || 0) + value;
+    function fetchFilteredData() {
+        let filters = {
+            pemegang_saham: document.getElementById("pemegang_saham").value,
+            bidang_kegiatan: document.getElementById("bidang_kegiatan").value,
+            tahun: document.getElementById("tahun").value,
+            bulan: document.getElementById("bulan").value
+        };
+
+        $.ajax({
+            url: "{{ route('csr.filter') }}",
+            type: "POST",
+            data: filters,
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+            success: function(response) {
+                console.log("Filtered Data Response:", response);
+                let dataMap = {};
+                response.forEach(item => {
+                    let key = currentChartType === "pemegang_saham" ? item.pemegang_saham : item.bidang_kegiatan;
+                    dataMap[key] = (dataMap[key] || 0) + (parseFloat(item.realisasi_csr) || 0);
+                });
+                console.log("DataMap:", dataMap);
+                console.log("Labels:", Object.keys(dataMap));
+                console.log("Data:", Object.values(dataMap));
+                
+                if (Object.keys(dataMap).length === 0) {
+                    updateChart([1], ["Tidak ada data"]);
+                } else {
+                    updateChart(Object.values(dataMap), Object.keys(dataMap));
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("AJAX Error:", error);
             }
         });
-        updateChart(Object.values(dataMap), Object.keys(dataMap));
     }
 
     document.getElementById("togglePemegangSaham").addEventListener("click", function() {
@@ -66,7 +88,7 @@
         this.classList.remove("btn-outline-primary");
         document.getElementById("toggleBidangKegiatan").classList.remove("btn-primary");
         document.getElementById("toggleBidangKegiatan").classList.add("btn-outline-primary");
-        loadChartFromTable();
+        fetchFilteredData();
     });
 
     document.getElementById("toggleBidangKegiatan").addEventListener("click", function() {
@@ -75,8 +97,13 @@
         this.classList.remove("btn-outline-primary");
         document.getElementById("togglePemegangSaham").classList.remove("btn-primary");
         document.getElementById("togglePemegangSaham").classList.add("btn-outline-primary");
-        loadChartFromTable();
+        fetchFilteredData();
     });
 
-    document.addEventListener("DOMContentLoaded", loadChartFromTable);
+    document.getElementById("pemegang_saham").addEventListener("change", fetchFilteredData);
+    document.getElementById("bidang_kegiatan").addEventListener("change", fetchFilteredData);
+    document.getElementById("tahun").addEventListener("change", fetchFilteredData);
+    document.getElementById("bulan").addEventListener("change", fetchFilteredData);
+
+    document.addEventListener("DOMContentLoaded", fetchFilteredData);
 </script>
