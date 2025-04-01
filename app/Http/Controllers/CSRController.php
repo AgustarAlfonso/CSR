@@ -40,4 +40,35 @@ class CsrController extends Controller
     
         return response()->json($query->get());
     }
+
+    public function getRealisasiCsr(Request $request)
+    {
+        $query = Csr::query();
+    
+        if (!empty($request->pemegang_saham)) {
+            $query->whereIn('pemegang_saham', (array) $request->pemegang_saham);
+        }
+        
+        if (!empty($request->tahun)) {
+            $query->whereIn('tahun', (array) $request->tahun);
+        }
+        
+        if (!empty($request->bulan)) {
+            $query->whereIn('bulan', (array) $request->bulan);
+        }
+        
+        if (!empty($request->bidang_kegiatan)) {
+            $query->whereIn('bidang_kegiatan', (array) $request->bidang_kegiatan);
+        }
+    
+        $totalRealisasi = $query->sum('realisasi_csr');
+    
+        return response()->json([
+            'pemegang_saham' => $request->pemegang_saham,
+            'realisasi_csr' => $totalRealisasi
+        ]);
+    }
+    
+
+    
 }
