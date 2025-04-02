@@ -68,6 +68,33 @@ class CsrController extends Controller
             'realisasi_csr' => $totalRealisasi
         ]);
     }
+
+    public function hasilFilter(Request $request)
+    {
+        $query = Csr::query();
+    
+        if ($request->pemegang_saham) {
+            $query->where('pemegang_saham', $request->pemegang_saham);
+        }
+    
+        if ($request->bidang_kegiatan) {
+            $query->where('bidang_kegiatan', $request->bidang_kegiatan);
+        }
+    
+        if ($request->tahun) {
+            $query->where('tahun', $request->tahun);
+        }
+    
+        if ($request->bulan) {
+            $query->where('bulan', $request->bulan);
+        }
+    
+        // Urutkan berdasarkan data terbaru (created_at terbaru atau id terbesar)
+        $data = $query->orderBy('id', 'desc')->get();
+    
+        return view('hasil_filter', compact('data'));
+    }
+    
     
 
     

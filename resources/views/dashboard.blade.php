@@ -18,10 +18,12 @@
         <div class="row">
             <!-- Sidebar Filter -->
             <div class="col-md-3">
+                
                 <div class="card mt-3">
                     <div class="card-header">
                         <h5>Filter CSR</h5>
                     </div>
+                    
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="pemegang_saham" class="form-label">Pemegang Saham</label>
@@ -62,6 +64,10 @@
                                 @endforeach
                             </select>
                         </div>
+                        <div class="d-grid">
+                            <a href="#" id="lihat_selengkapnya" class="btn btn-primary">Lihat Selengkapnya</a>
+                        </div>
+                        
                     </div>
                 </div>
             </div>
@@ -92,6 +98,22 @@
     
 
     <script>
+
+        $(document).ready(function() {
+            $('#lihat_selengkapnya').click(function(e) {
+                e.preventDefault();
+                let params = new URLSearchParams({
+                    pemegang_saham: $('#pemegang_saham').val(),
+                    bidang_kegiatan: $('#bidang_kegiatan').val(),
+                    tahun: $('#tahun').val(),
+                    bulan: $('#bulan').val()
+                }).toString();
+
+                window.location.href = '/hasil-filter?' + params;
+            });
+        });
+
+
         $(document).ready(function() {
             function applyFilter() {
                 let data = {
