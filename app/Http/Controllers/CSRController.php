@@ -90,10 +90,11 @@ class CsrController extends Controller
         }
     
         // Urutkan berdasarkan data terbaru (created_at terbaru atau id terbesar)
-        $data = $query->orderBy('id', 'desc')->get();
+        $data = $query->orderBy('id', 'desc')->paginate(10);
     
         return view('hasil_filter', compact('data'));
     }
+    
     
     
 
