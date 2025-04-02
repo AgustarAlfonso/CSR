@@ -19,4 +19,10 @@ class Csr extends Model
         'realisasi_csr', 
         'ket'
     ];
+
+    public function anggaran()
+{
+    return $this->belongsTo(AnggaranCsr::class, 'pemegang_saham', 'pemegang_saham')
+                ->where('tahun', $this->tahun);
+}
 }
