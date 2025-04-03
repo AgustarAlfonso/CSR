@@ -205,26 +205,43 @@
                             });
 
                             layer.on("click", function () {
-                                let filterData = {
-                                    pemegang_saham: region,
-                                    bidang_kegiatan: $('#bidang_kegiatan').val(),
-                                    tahun: $('#tahun').val(),
-                                    bulan: $('#bulan').val(),
-                                };
+    let filterData = {
+        pemegang_saham: region,
+        bidang_kegiatan: $('#bidang_kegiatan').val(),
+        tahun: $('#tahun').val(),
+        bulan: $('#bulan').val(),
+    };
 
-                                $.ajax({
-                                    url: '/api/realisasi_csr',
-                                    type: 'GET',
-                                    data: filterData,
-                                    success: function (response) {
-                                        let info = `<b>${region}</b><br>Realisasi CSR: Rp${response.realisasi_csr.toLocaleString()}`;
-                                        layer.bindPopup(info).openPopup();
-                                    },
-                                    error: function () {
-                                        layer.bindPopup(`<b>${region}</b><br>Data tidak tersedia`).openPopup();
-                                    }
-                                });
-                            });
+    $.ajax({
+        url: '{{ route("csr.filter") }}',
+        type: 'POST',
+        data: filterData,
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function (response) {
+            function formatRupiah(angka) {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'decimal',
+        maximumFractionDigits: 0
+    }).format(angka);
+}
+
+let info = `
+    <b>${region}</b><br>
+    Jumlah Anggaran: Rp ${formatRupiah(response.jumlah_anggaran)}<br>
+    Realisasi CSR: Rp ${formatRupiah(response.realisasi_csr)}<br>
+    Sisa CSR: Rp ${formatRupiah(response.sisa_csr)}
+`;
+
+            layer.bindPopup(info).openPopup();
+        },
+        error: function () {
+            layer.bindPopup(`<b>${region}</b><br>Data tidak tersedia`).openPopup();
+        }
+    });
+});
+
                         }
                     }).addTo(geojsonLayer);
 
