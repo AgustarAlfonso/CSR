@@ -16,67 +16,81 @@
     let csrBarChart = null; // Simpan instance chart secara global
 
     function updateBarChart(data, labels) {
-        let ctx = document.getElementById("csrBarChart").getContext("2d");
+    let ctx = document.getElementById("csrBarChart").getContext("2d");
 
-        // Hapus chart sebelumnya jika sudah ada
-        if (csrBarChart instanceof Chart) {
-            csrBarChart.destroy();
-        }
+    // Hapus chart sebelumnya kalau ada
+    if (csrBarChart instanceof Chart) {
+        csrBarChart.destroy();
+    }
 
-        // Buat chart baru
-        csrBarChart = new Chart(ctx, {
-            type: "bar",
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: "Realisasi CSR (Rp)",
-                    data: data,
-                    backgroundColor: "#36a2eb"
-                }]
+    // Buat chart baru
+    csrBarChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "CSR (Rp)",
+                data: data,
+                backgroundColor: ["#36a2eb", "#4bc0c0", "#ff6384"], // Warna sesuai kategori
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    formatter: (value) => value.toLocaleString("id-ID"), // Format angka jadi rupiah
+                    color: "#000",
+                    font: { weight: "bold" }
+                }
             },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { callback: (value) => value.toLocaleString("id-ID") }
-                    }
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { callback: (value) => value.toLocaleString("id-ID") }
                 }
             }
-        });
-    }
+        },
+        plugins: [ChartDataLabels]
+    });
+}
+
 
     function loadBarChartFromAPI() {
-        let filters = {
-            pemegang_saham: $('#pemegang_saham').val(),
-            bidang_kegiatan: $('#bidang_kegiatan').val(),
-            tahun: $('#tahun').val(),
-            bulan: $('#bulan').val(),
-        };
+    let filters = {
+        pemegang_saham: $('#pemegang_saham').val(),
+        bidang_kegiatan: $('#bidang_kegiatan').val(),
+        tahun: $('#tahun').val(),
+        bulan: $('#bulan').val(),
+    };
 
-        $.ajax({
-            url: '{{ route("csr.filter") }}',
-            type: 'POST',
-            data: filters,
-            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-            success: function(response) {
-                let dataMap = {};
-                response.forEach(item => {
-                    let label = currentBarChartType === "pemegang_saham" ? item.pemegang_saham : item.bidang_kegiatan;
-                    let value = parseInt(item.realisasi_csr.replace(/\./g, "")) || 0;
-                    dataMap[label] = (dataMap[label] || 0) + value;
-                });
+    $.ajax({
+        url: '{{ route("csr.filter") }}',
+        type: 'POST',
+        data: filters,
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+        success: function(response) {
+            console.log("Filtered Bar Chart Data:", response);
 
-                updateBarChart(Object.values(dataMap), Object.keys(dataMap));
-            },
-            error: function(xhr) {
-                console.error(xhr.responseText);
-            }
-        });
-    }
+            // Konversi ke number biar nggak ada NaN
+            let jumlahAnggaran = parseFloat(response.jumlah_anggaran) || 0;
+            let realisasiCsr = parseFloat(response.realisasi_csr) || 0;
+            let sisaCsr = parseFloat(response.sisa_csr) || 0;
+
+            let data = [jumlahAnggaran, realisasiCsr, sisaCsr];
+            let labels = ["Jumlah Anggaran", "Realisasi CSR", "Sisa CSR"];
+
+            console.log("Final Data for Bar Chart:", data);
+            updateBarChart(data, labels);
+        },
+        error: function(xhr) {
+            console.error(xhr.responseText);
+        }
+    });
+}
+
 
     document.getElementById("toggleBarPemegangSaham").addEventListener("click", function() {
         currentBarChartType = "pemegang_saham";
