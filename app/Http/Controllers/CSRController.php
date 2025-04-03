@@ -89,11 +89,15 @@ class CsrController extends Controller
             $query->where('bulan', $request->bulan);
         }
     
-        // Urutkan berdasarkan data terbaru (created_at terbaru atau id terbesar)
+        // Hitung total sebelum paginasi
+        $totalRealisasi = $query->sum('realisasi_csr');
+    
+        // Urutkan dan paginasi
         $data = $query->orderBy('id', 'desc')->paginate(10);
     
-        return view('hasil_filter', compact('data'));
+        return view('hasil_filter', compact('data', 'totalRealisasi'));
     }
+    
     
     
     
