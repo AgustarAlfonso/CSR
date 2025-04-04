@@ -20,38 +20,52 @@ class CsrController extends Controller
     }
     
     public function filter(Request $request)
-{
-    $anggaranQuery = AnggaranCsr::query();
-    $csrQuery = Csr::query();
+    {
+        $anggaranQuery = AnggaranCsr::query();
+    
+        if (!empty($request->pemegang_saham)) {
+            $anggaranQuery->whereIn('pemegang_saham', (array) $request->pemegang_saham);
+        }
+    
+        if (!empty($request->tahun)) {
+            $anggaranQuery->whereIn('tahun', (array) $request->tahun);
+        }
+    
+        $anggaranList = $anggaranQuery->get();
+    
+        $result = [];
+    
+        foreach ($anggaranList as $anggaran) {
+            $dataPerBulan = $anggaran->sisa_anggaran_per_bulan; // Dari model
+    
+            if (!empty($request->bulan)) {
+                $bulan = (int) $request->bulan;
+                $result[] = $dataPerBulan[$bulan] ?? [
+                    'bulan' => $bulan,
+                    'total_anggaran' => $anggaran->jumlah_anggaran,
+                    'realisasi' => 0,
+                    'sisa_anggaran' => $anggaran->jumlah_anggaran
+                ];
+            } else {
+                $result = array_merge($result, array_values($dataPerBulan));
+            }
+        }
 
-    if (!empty($request->pemegang_saham)) {
-        $anggaranQuery->whereIn('pemegang_saham', (array) $request->pemegang_saham);
-        $csrQuery->whereIn('pemegang_saham', (array) $request->pemegang_saham);
+        
+    
+        $totalAnggaran = !empty($request->bulan) 
+        ? array_sum(array_column($result, 'total_anggaran'))
+        : $anggaranList->sum('jumlah_anggaran');
+        $totalRealisasi = array_sum(array_column($result, 'realisasi'));
+        $sisaCsr = max($totalAnggaran - $totalRealisasi, 0);
+    
+        return response()->json([
+            'jumlah_anggaran' => $totalAnggaran,
+            'realisasi_csr' => $totalRealisasi,
+            'sisa_csr' => $sisaCsr
+        ]);
     }
-
-    if (!empty($request->tahun)) {
-        $anggaranQuery->whereIn('tahun', (array) $request->tahun);
-        $csrQuery->whereIn('tahun', (array) $request->tahun);
-    }
-
-    if (!empty($request->bulan)) {
-        $csrQuery->whereIn('bulan', (array) $request->bulan);
-    }
-
-    if (!empty($request->bidang_kegiatan)) {
-        $csrQuery->whereIn('bidang_kegiatan', (array) $request->bidang_kegiatan);
-    }
-
-    $totalAnggaran = $anggaranQuery->sum('jumlah_anggaran');
-    $totalRealisasi = $csrQuery->sum('realisasi_csr');
-    $sisaCsr = $totalAnggaran - $totalRealisasi;
-
-    return response()->json([
-        'jumlah_anggaran' => $totalAnggaran,
-        'realisasi_csr' => $totalRealisasi,
-        'sisa_csr' => max($sisaCsr, 0)
-    ]);
-}
+    
 
 
     public function getRealisasiCsr(Request $request)

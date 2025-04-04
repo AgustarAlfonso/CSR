@@ -145,120 +145,120 @@
     </script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        var map = L.map('map').setView([0.5, 102.0], 7); // Pusat peta ke Riau
-        var geojsonLayer = L.layerGroup().addTo(map);
+document.addEventListener("DOMContentLoaded", function () {
+    var map = L.map('map').setView([0.5, 102.0], 7); // Pusat peta ke Riau
+    var geojsonLayer = L.layerGroup().addTo(map);
 
-        // Tambahkan peta dasar
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+    // Tambahkan peta dasar
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
 
-        // Mapping ENUM dengan nama file GeoJSON
-        var geojsonFiles = {
-            'Kab. Kepulauan Anambas': 'anambas.geojson',
-            'Kab. Indragiri Hulu': 'indragiri_hulu.geojson',
-            'Kota Batam': 'batam.geojson',
-            'Kab. Indragiri Hilir': 'indragiri_hilir.geojson',
-            'Provinsi Riau': 'riau.geojson',
-            'Kab. Kampar': 'kampar.geojson',
-            'Kab. Bintan': 'bintan.geojson',
-            'Kab. Bengkalis': 'bengkalis.geojson',
-            'Kab. Rokan Hilir': 'rokan_hilir.geojson',
-            'Kab. Meranti': 'meranti.geojson',
-            'Kab. Natuna': 'natuna.geojson',
-            'Kab. Siak': 'siak.geojson',
-            'Kab. Pelalawan': 'pelalawan.geojson',
-            'Kota Dumai': 'dumai.geojson',
-            'Kota Pekanbaru': 'pekanbaru.geojson',
-            'Provinsi Kepulauan Riau': 'kepulauan_riau.geojson',
-            'Kab. Rokan Hulu': 'rokan_hulu.geojson',
-            'Kab. Lingga': 'lingga.geojson',
-            'Kab. Karimun': 'karimun.geojson',
-            'Kota Tanjung Pinang': 'tanjung_pinang.geojson',
-            'Kab. Kuansing': 'kuantan_singingi.geojson'
-        };
-
-                function loadGeoJSON(region) {
-            geojsonLayer.clearLayers(); // Bersihkan peta sebelum memuat data baru
-            if (!geojsonFiles[region]) return;
-
-            fetch('/geojson/' + geojsonFiles[region])
-                .then(response => response.json())
-                .then(data => {
-                    var layer = L.geoJSON(data, {
-                        style: function (feature) {
-                            return {
-                                color: "#ff7800",
-                                weight: 2,
-                                fillColor: "#ffcc00",
-                                fillOpacity: 0.5
-                            };
-                        },
-                        onEachFeature: function (feature, layer) {
-                            layer.on("mouseover", function () {
-                                this.setStyle({ fillColor: "#ff4500", fillOpacity: 0.7 });
-                            });
-
-                            layer.on("mouseout", function () {
-                                this.setStyle({ fillColor: "#ffcc00", fillOpacity: 0.5 });
-                            });
-
-                            layer.on("click", function () {
-    let filterData = {
-        pemegang_saham: region,
-        bidang_kegiatan: $('#bidang_kegiatan').val(),
-        tahun: $('#tahun').val(),
-        bulan: $('#bulan').val(),
+    // Mapping ENUM dengan nama file GeoJSON
+    var geojsonFiles = {
+        'Kab. Kepulauan Anambas': 'anambas.geojson',
+        'Kab. Indragiri Hulu': 'indragiri_hulu.geojson',
+        'Kota Batam': 'batam.geojson',
+        'Kab. Indragiri Hilir': 'indragiri_hilir.geojson',
+        'Provinsi Riau': 'riau.geojson',
+        'Kab. Kampar': 'kampar.geojson',
+        'Kab. Bintan': 'bintan.geojson',
+        'Kab. Bengkalis': 'bengkalis.geojson',
+        'Kab. Rokan Hilir': 'rokan_hilir.geojson',
+        'Kab. Meranti': 'meranti.geojson',
+        'Kab. Natuna': 'natuna.geojson',
+        'Kab. Siak': 'siak.geojson',
+        'Kab. Pelalawan': 'pelalawan.geojson',
+        'Kota Dumai': 'dumai.geojson',
+        'Kota Pekanbaru': 'pekanbaru.geojson',
+        'Provinsi Kepulauan Riau': 'kepulauan_riau.geojson',
+        'Kab. Rokan Hulu': 'rokan_hulu.geojson',
+        'Kab. Lingga': 'lingga.geojson',
+        'Kab. Karimun': 'karimun.geojson',
+        'Kota Tanjung Pinang': 'tanjung_pinang.geojson',
+        'Kab. Kuansing': 'kuantan_singingi.geojson'
     };
 
-    $.ajax({
-        url: '{{ route("csr.filter") }}',
-        type: 'POST',
-        data: filterData,
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        success: function (response) {
-            function formatRupiah(angka) {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'decimal',
-        maximumFractionDigits: 0
-    }).format(angka);
-}
+    function loadGeoJSON(region) {
+        geojsonLayer.clearLayers(); // Bersihkan peta sebelum memuat data baru
+        let file = region ? geojsonFiles[region] : 'semua.geojson';
+        
+        fetch('/geojson/' + file)
+            .then(response => response.json())
+            .then(data => {
+                var layer = L.geoJSON(data, {
+                    style: function (feature) {
+                        return {
+                            color: "#ff7800",
+                            weight: 2,
+                            fillColor: "#ffcc00",
+                            fillOpacity: 0.5
+                        };
+                    },
+                    onEachFeature: function (feature, layer) {
+                        layer.on("mouseover", function () {
+                            this.setStyle({ fillColor: "#ff4500", fillOpacity: 0.7 });
+                        });
 
-let info = `
-    <b>${region}</b><br>
-    Jumlah Anggaran: Rp ${formatRupiah(response.jumlah_anggaran)}<br>
-    Realisasi CSR: Rp ${formatRupiah(response.realisasi_csr)}<br>
-    Sisa CSR: Rp ${formatRupiah(response.sisa_csr)}
-`;
+                        layer.on("mouseout", function () {
+                            this.setStyle({ fillColor: "#ffcc00", fillOpacity: 0.5 });
+                        });
 
-            layer.bindPopup(info).openPopup();
-        },
-        error: function () {
-            layer.bindPopup(`<b>${region}</b><br>Data tidak tersedia`).openPopup();
-        }
+                        layer.on("click", function () {
+                            let filterData = {
+                                pemegang_saham: region,
+                                bidang_kegiatan: $('#bidang_kegiatan').val(),
+                                tahun: $('#tahun').val(),
+                                bulan: $('#bulan').val(),
+                            };
+
+                            $.ajax({
+                                url: '{{ route("csr.filter") }}',
+                                type: 'POST',
+                                data: filterData,
+                                headers: {
+                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                },
+                                success: function (response) {
+                                    function formatRupiah(angka) {
+                                        return new Intl.NumberFormat('id-ID', {
+                                            style: 'decimal',
+                                            maximumFractionDigits: 0
+                                        }).format(angka);
+                                    }
+
+                                    let info = `
+                                        <b>${region || 'Keseluruhan'}</b><br>
+                                        Jumlah Anggaran: Rp ${formatRupiah(response.jumlah_anggaran)}<br>
+                                        Realisasi CSR: Rp ${formatRupiah(response.realisasi_csr)}<br>
+                                        Sisa CSR: Rp ${formatRupiah(response.sisa_csr)}
+                                    `;
+
+                                    layer.bindPopup(info).openPopup();
+                                },
+                                error: function () {
+                                    layer.bindPopup(`<b>${region || 'Keseluruhan'}</b><br>Data tidak tersedia`).openPopup();
+                                }
+                            });
+                        });
+                    }
+                }).addTo(geojsonLayer);
+
+                map.fitBounds(layer.getBounds());
+            })
+            .catch(error => console.error("Error loading GeoJSON:", error));
+    }
+
+    // Event listener saat filter berubah
+    $('#pemegang_saham, #bidang_kegiatan, #tahun, #bulan').change(function () {
+        let selectedRegion = $('#pemegang_saham').val();
+        loadGeoJSON(selectedRegion);
     });
+
+    // Load semua data jika tidak ada filter yang aktif
+    loadGeoJSON(null);
 });
 
-                        }
-                    }).addTo(geojsonLayer);
-
-                    map.fitBounds(layer.getBounds());
-                })
-                .catch(error => console.error("Error loading GeoJSON:", error));
-        }
-
-
-
-        // Event listener saat filter berubah
-        $('#pemegang_saham, #bidang_kegiatan, #tahun, #bulan').change(function () {
-            let selectedRegion = $('#pemegang_saham').val();
-            loadGeoJSON(selectedRegion);
-        });
-
-    });
 </script>
 
 

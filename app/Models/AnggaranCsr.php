@@ -24,9 +24,35 @@ class AnggaranCsr extends Model
                     ->where('tahun', $this->tahun);
     }
 
-    public function getSisaRealisasiAttribute()
+    public function getSisaAnggaranPerBulanAttribute()
     {
-        $totalRealisasi = $this->realisasi()->sum('realisasi_csr');
-        return $this->jumlah_anggaran - $totalRealisasi;
+        $realisasiData = Csr::where('pemegang_saham', $this->pemegang_saham)
+            ->where('tahun', $this->tahun)
+            ->orderBy('bulan')
+            ->get()
+            ->groupBy('bulan');
+    
+        $sisaAnggaran = $this->jumlah_anggaran;
+        $result = [];
+    
+        for ($bulan = 1; $bulan <= 12; $bulan++) {
+            $realisasi = isset($realisasiData[$bulan]) ? $realisasiData[$bulan]->sum('realisasi_csr') : 0;
+            
+            $result[$bulan] = [
+                'bulan' => $bulan,
+                'total_anggaran' => $sisaAnggaran,
+                'realisasi' => $realisasi,
+                'sisa_anggaran' => max($sisaAnggaran - $realisasi, 0)
+            ];
+    
+            $sisaAnggaran = max($sisaAnggaran - $realisasi, 0);
+        }
+    
+        return $result;
     }
+    
+
+    
+
+    
 }
