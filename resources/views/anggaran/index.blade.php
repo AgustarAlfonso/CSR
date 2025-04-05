@@ -11,54 +11,91 @@
         <a href="{{ route('anggaran.create') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-semibold text-sm">+ Tambah Anggaran</a>
     </div>
 
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y-2 divide-gray-200" id="anggaranTable" data-sort-col="0" data-sort-order="desc">
-            <thead class="ltr:text-left rtl:text-right bg-yellow-200">
-                <tr class="*:font-medium *:text-gray-900">
-                    <th class="px-3 py-2">No</th>
-                    <th class="px-3 py-2 cursor-pointer" onclick="sortTable(1)">Pemegang Saham <span class="sort-icon"></span></th>
-                    <th class="px-3 py-2 cursor-pointer" onclick="sortTable(2)">Bulan <span class="sort-icon"></span></th>
-                    <th class="px-3 py-2 cursor-pointer" onclick="sortTable(3)">Tahun <span class="sort-icon"></span></th>
-                    <th class="px-3 py-2 cursor-pointer" onclick="sortTable(4)">Jumlah Anggaran <span class="sort-icon"></span></th>
-                    <th class="px-3 py-2">Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 *:even:bg-gray-50">
-                @foreach($anggaran as $index => $row)
-                    <tr class="*:text-gray-900 *:first:font-medium">
-                        <td class="px-3 py-2">{{ $index + 1 }}</td>
-                        <td class="px-3 py-2">{{ $row->pemegang_saham }}</td>
-                        <td class="px-3 py-2">{{ $row->bulan }}</td>
-                        <td class="px-3 py-2">{{ $row->tahun }}</td>
-                        <td class="px-3 py-2 font-semibold text-blue-600">Rp{{ number_format($row->jumlah_anggaran, 0, ',', '.') }}</td>
-                        <td class="px-3 py-2 space-x-2">
-                            <a href="{{ route('anggaran.edit', $row->id) }}" class="text-sm bg-yellow-400 hover:bg-yellow-500 text-white font-semibold px-3 py-1 rounded">Edit</a>
-                            <form action="{{ route('anggaran.destroy', $row->id) }}" method="POST" class="inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" onclick="return confirm('Yakin ingin menghapus?')" class="text-sm bg-red-500 hover:bg-red-600 text-white font-semibold px-3 py-1 rounded">Hapus</button>
-                            </form>
-                        </td>
-                    </tr>
+    <form id="filterForm" class="mb-6">
+        <div class="space-y-4">
+          {{-- Filter Pemegang Saham --}}
+          <details class="group rounded border border-gray-300 shadow-sm overflow-hidden">
+            <summary class="flex justify-between p-3 text-sm font-medium text-gray-700 cursor-pointer">
+                <span>Pemegang Saham</span>
+                <span class="text-sm bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium" data-count-label="pemegang_saham">(0 dipilih)</span>
+            </summary>
+            <div class="p-3 grid grid-cols-2 md:grid-cols-3 gap-3">
+                @foreach($daftarPemegangSaham as $saham)
+                  <label class="inline-flex items-center gap-3">
+                    <input 
+                      type="checkbox" 
+                      name="pemegang_saham[]" 
+                      value="{{ $saham }}" 
+                      class="size-5 rounded border-gray-300 shadow-sm"
+                      id="checkbox-{{ Str::slug($saham) }}"
+                    />
+              
+                    <span class="font-medium text-gray-700">{{ $saham }}</span>
+                  </label>
                 @endforeach
-            </tbody>
-            <tfoot class="bg-green-200 font-semibold text-gray-800">
-                <tr>
-                    <td colspan="4" class="px-3 py-2 text-right">Total Anggaran:</td>
-                    <td class="px-3 py-2 text-blue-600">Rp{{ number_format($totalAnggaran, 0, ',', '.') }}</td>
-                    <td></td>
-                </tr>
-            </tfoot>
-        </table>
-        <div class="mt-4">
-            {{ $anggaran->links('pagination::tailwind') }}
+              </div>
+              
+          </details>
+      
+          {{-- Filter Tahun --}}
+          <details class="group rounded border border-gray-300 shadow-sm overflow-hidden">
+            <summary class="flex justify-between p-3 text-sm font-medium text-gray-700 cursor-pointer">
+                <span>Tahun</span>
+                <span class="text-sm bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium" data-count-label="tahun">(0 dipilih)</span>            </summary>
+                <fieldset>
+                    <legend class="sr-only">Filter Tahun</legend>
+                  
+                    <div class="p-3 grid grid-cols-2 md:grid-cols-3 gap-3">
+                      @foreach($daftarTahun as $tahun)
+                        <label class="inline-flex items-center gap-3">
+                          <input 
+                            type="checkbox" 
+                            name="tahun[]" 
+                            value="{{ $tahun }}" 
+                            class="size-5 rounded border-gray-300 shadow-sm"
+                            id="checkbox-tahun-{{ $tahun }}"
+                          />
+                          <span class="font-medium text-gray-700">{{ $tahun }}</span>
+                        </label>
+                      @endforeach
+                    </div>
+                  </fieldset>
+                  
+          </details>
+      
+          <button type="submit" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm">Terapkan Filter</button>
         </div>
-    </div>
+      </form>
+       
 
-    <a href='{{ route("dashboard") }}' class="block w-full text-center mt-4 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 rounded">Kembali</a>
+      
+        @include('anggaran._table', ['anggaran' => $anggaran, 'totalAnggaran' => $totalAnggaran])
+
 </div>
 
+    
+@endsection
+
+@push('scripts')
 <script>
+    function updateDetailCounts() {
+    const form = document.getElementById('filterForm');
+
+    const categories = ['pemegang_saham', 'tahun'];
+    categories.forEach(category => {
+        const checkboxes = form.querySelectorAll(`input[name="${category}[]"]`);
+        let count = 0;
+        checkboxes.forEach(checkbox => {
+            if (checkbox.checked) count++;
+        });
+
+        const label = form.querySelector(`[data-count-label="${category}"]`);
+        if (label) {
+            label.textContent = `(${count} dipilih)`;
+        }
+    });
+}
+
     function sortTable(columnIndex) {
         var table = document.getElementById("anggaranTable");
         var tbody = table.tBodies[0];
@@ -98,4 +135,56 @@
         sortTable(0);
     });
 </script>
-@endsection
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById('filterForm');
+        updateDetailCounts();
+    
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const params = new URLSearchParams(formData).toString();
+    
+            fetch(`{{ route('anggaran.index') }}?${params}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const newDoc = parser.parseFromString(html, 'text/html');
+                const newTable = newDoc.getElementById('tableWrapper');
+                document.getElementById('tableWrapper').innerHTML = newTable.innerHTML;
+                updateDetailCounts(); 
+            });
+        });
+
+        form.querySelectorAll('input[type="checkbox"]').forEach(input => {
+        input.addEventListener('change', updateDetailCounts);
+    });
+    
+        // AJAX for pagination
+        document.addEventListener('click', function (e) {
+            if (e.target.closest('.pagination a')) {
+                e.preventDefault();
+                const url = e.target.closest('a').href;
+    
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const newDoc = parser.parseFromString(html, 'text/html');
+                    const newTable = newDoc.getElementById('tableWrapper');
+                    document.getElementById('tableWrapper').innerHTML = newTable.innerHTML;
+                });
+            }
+        });
+    });
+    </script>
+    @endpush

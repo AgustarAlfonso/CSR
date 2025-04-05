@@ -7,13 +7,32 @@ use Illuminate\Http\Request;
 
 class AnggaranController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $anggaran = Anggaran::latest()->paginate(10);
-        $totalAnggaran = $anggaran->sum('jumlah_anggaran');
-
-        return view('anggaran.index', compact('anggaran', 'totalAnggaran'));
+        $query = Anggaran::query();
+    
+        if ($request->filled('pemegang_saham')) {
+            $query->whereIn('pemegang_saham', $request->pemegang_saham);
+        }
+    
+        if ($request->filled('tahun')) {
+            $query->whereIn('tahun', $request->tahun);
+        }
+    
+        $anggaran = $query->paginate(10);
+        $totalAnggaran = $query->sum('jumlah_anggaran');
+    
+    
+        $daftarPemegangSaham = Anggaran::select('pemegang_saham')->distinct()->pluck('pemegang_saham');
+        $daftarTahun = Anggaran::select('tahun')->distinct()->pluck('tahun');
+    
+        if ($request->ajax()) {
+            return view('anggaran._table', compact('anggaran', 'totalAnggaran'))->render();
+        }
+        
+        return view('anggaran.index', compact('anggaran', 'totalAnggaran', 'daftarPemegangSaham', 'daftarTahun'));
     }
+    
 
     public function create()
     {
