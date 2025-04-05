@@ -23,7 +23,7 @@ class CsrController extends Controller
     {
         $anggaranQuery = AnggaranCsr::query();
     
-        if (!empty($request->pemegang_saham)) {
+        if (!empty($request->pemegang_saham) && $request->pemegang_saham !== 'semua') {
             $anggaranQuery->whereIn('pemegang_saham', (array) $request->pemegang_saham);
         }
     
@@ -123,7 +123,13 @@ class CsrController extends Controller
         // Urutkan dan paginasi
         $data = $query->orderBy('id', 'desc')->paginate(10);
     
-        return view('hasil_filter', compact('data', 'totalRealisasi'));
+        return view('hasil_filter', compact('data', 'totalRealisasi'))
+        ->with([
+            'pemegang_saham' => $request->pemegang_saham,
+            'bidang_kegiatan' => $request->bidang_kegiatan,
+            'tahun' => $request->tahun,
+            'bulan' => $request->bulan,
+        ]);
     }
     
     

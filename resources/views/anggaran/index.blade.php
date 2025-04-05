@@ -1,12 +1,50 @@
 @extends('layouts.master')
 
-@section('title', 'Data Anggaran CSR ' . ($anggaran->first()->pemegang_saham ?? '') . ' - ' . ($anggaran->first()->bulan ?? '') . ' ' . ($anggaran->first()->tahun ?? ''))
+@section('title', 'Data Anggaran CSR ')
 
 @section('content')
+
+
+
+
 <div class="container mx-auto mt-10 p-6 bg-white shadow rounded-lg">
+
+    @if (session('success'))
+<div 
+    x-data="{ show: true, percent: 100 }"
+    x-init="
+        let interval = setInterval(() => {
+            percent -= 1;
+            if (percent <= 0) {
+                clearInterval(interval);
+                show = false;
+            }
+        }, 30);
+    "
+    x-show="show"
+    x-transition
+    x-cloak
+    class="fixed top-5 right-5 w-[300px] bg-green-500 text-white rounded-lg shadow-lg z-50 overflow-hidden"
+>
+    <div class="flex items-center p-3 space-x-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span class="text-sm">{{ session('success') }}</span>
+    </div>
+    <div class="h-1 bg-white/40">
+        <div 
+            class="h-full bg-white transition-all duration-75"
+            :style="{ width: percent + '%' }">
+        </div>
+    </div>
+</div>
+@endif
+
+
     <div class="flex justify-between items-center mb-4">
         <h3 class="text-xl font-semibold text-gray-800">
-            Data Anggaran CSR {{ $anggaran->first()->pemegang_saham ?? '' }} - {{ $anggaran->first()->bulan ?? '' }} {{ $anggaran->first()->tahun ?? '' }}
+            Data Anggaran CSR 
         </h3>
         <a href="{{ route('anggaran.create') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-semibold text-sm">+ Tambah Anggaran</a>
     </div>

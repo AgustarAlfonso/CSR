@@ -19,14 +19,8 @@
     
     
     <style>
-        .dataTables_wrapper .dataTables_length {
-            margin-bottom: 10px;
-        }
-    
-        .dataTables_wrapper .dataTables_filter {
-            margin-bottom: 10px;
-        }
-    </style>
+        [x-cloak] { display: none !important; }
+      </style>
 </head>
 <body class="bg-gray-100">
     
@@ -42,6 +36,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="//unpkg.com/alpinejs" defer></script>
 
     @stack('scripts')
 </body>

@@ -1,11 +1,29 @@
 @extends('layouts.master')
+@php
+    $namaBulan = [
+        1 => 'Januari',
+        2 => 'Februari',
+        3 => 'Maret',
+        4 => 'April',
+        5 => 'Mei',
+        6 => 'Juni',
+        7 => 'Juli',
+        8 => 'Agustus',
+        9 => 'September',
+        10 => 'Oktober',
+        11 => 'November',
+        12 => 'Desember',
+    ];
 
-@section('title', 'Data CSR ' . ($data->first()->pemegang_saham ?? '') . ' - ' . ($data->first()->bulan ?? '') . ' ' . ($data->first()->tahun ?? ''))
+    $bulanTampil = $bulan ? ($namaBulan[(int) $bulan] ?? $bulan) : 'Semua Bulan';
+@endphp
+
+@section('title', 'Data CSR ' . ($pemegang_saham ?? 'Semua Pemegang Saham') . ' - ' . $bulanTampil . ' ' . ($tahun ?? 'Semua Tahun'))
 
 @section('content')
 <div class="container mx-auto mt-10 p-6 bg-white shadow rounded-lg">
     <h3 class="text-xl font-semibold text-gray-800 mb-4">
-        Data CSR {{ $data->first()->pemegang_saham ?? '' }} - {{ $data->first()->bulan ?? '' }} {{ $data->first()->tahun ?? '' }}
+        Data CSR {{ $pemegang_saham ?? 'Semua Pemegang Saham' }} - {{ $bulanTampil }} {{ $tahun ?? 'Semua Tahun' }}
     </h3>
     @include('components.table', [
         'headers' => ['No', 'Nama Program', 'Bidang Kegiatan', 'Pemegang Saham', 'Bulan', 'Tahun', 'Realisasi CSR', 'Keterangan'],

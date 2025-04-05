@@ -211,9 +211,10 @@
                                         maximumFractionDigits: 0
                                     }).format(angka);
                                 }
+                                let label = region ? region : 'Semua Wilayah';
 
                                 let info = `
-                                    <b>${region}</b><br>
+                                    <b>${label}</b><br>
                                     Jumlah Anggaran: Rp ${formatRupiah(response.jumlah_anggaran)}<br>
                                     Realisasi CSR: Rp ${formatRupiah(response.realisasi_csr)}<br>
                                     Sisa CSR: Rp ${formatRupiah(response.sisa_csr)}
