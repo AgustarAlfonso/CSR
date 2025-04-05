@@ -63,6 +63,16 @@ class AnggaranCsr extends Model
     return $result;
 }
 
+public function hitungSisaAnggaranTotal()
+{
+    // Ambil total realisasi CSR dari program yang match dengan pemegang saham dan tahun
+    $totalRealisasi = \App\Models\Csr::where('pemegang_saham', $this->pemegang_saham)
+        ->where('tahun', $this->tahun)
+        ->sum('realisasi_csr');
+
+    // Hitung sisa
+    return max($this->jumlah_anggaran - $totalRealisasi, 0);
+}
     
 
     
