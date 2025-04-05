@@ -31,12 +31,14 @@ class CsrController extends Controller
             $anggaranQuery->whereIn('tahun', (array) $request->tahun);
         }
     
-        $anggaranList = $anggaranQuery->get();
+        // Ambil filter bidang kegiatan jika ada
+        $bidangKegiatan = !empty($request->bidang_kegiatan) ? (array) $request->bidang_kegiatan : null;
     
+        $anggaranList = $anggaranQuery->get();
         $result = [];
     
         foreach ($anggaranList as $anggaran) {
-            $dataPerBulan = $anggaran->sisa_anggaran_per_bulan; // Dari model
+            $dataPerBulan = $anggaran->getSisaAnggaranPerBulan($bidangKegiatan);
     
             if (!empty($request->bulan)) {
                 $bulan = (int) $request->bulan;
@@ -50,12 +52,11 @@ class CsrController extends Controller
                 $result = array_merge($result, array_values($dataPerBulan));
             }
         }
-
-        
     
         $totalAnggaran = !empty($request->bulan) 
-        ? array_sum(array_column($result, 'total_anggaran'))
-        : $anggaranList->sum('jumlah_anggaran');
+            ? array_sum(array_column($result, 'total_anggaran'))
+            : $anggaranList->sum('jumlah_anggaran');
+            
         $totalRealisasi = array_sum(array_column($result, 'realisasi'));
         $sisaCsr = max($totalAnggaran - $totalRealisasi, 0);
     
