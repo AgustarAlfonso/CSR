@@ -5,6 +5,16 @@
 @section('content')
 <div class="max-w-2xl mx-auto mt-12 p-8 bg-white shadow-lg rounded-2xl border border-gray-200">
     <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">✏️ Edit Anggaran CSR</h2>
+    @if($errors->any())
+    <div class="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+        <strong>Terjadi kesalahan:</strong>
+        <ul class="list-disc list-inside mt-2 text-sm">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
 
     <form method="POST" action="{{ route('anggaran.update', $anggaran->id) }}" class="space-y-5">
         @csrf

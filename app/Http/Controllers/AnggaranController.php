@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AnggaranCsr as Anggaran;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Validator;
 class AnggaranController extends Controller
 {
     public function index(Request $request)
@@ -41,17 +41,89 @@ class AnggaranController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $messages = [
+            'pemegang_saham.required' => 'Pemegang saham wajib diisi.',
+            'pemegang_saham.string' => 'Pemegang saham harus berupa teks.',
+            'pemegang_saham.max' => 'Pemegang saham maksimal :max karakter.',
+            'tahun.required' => 'Tahun wajib diisi.',
+            'tahun.integer' => 'Tahun harus berupa angka.',
+            'bulan.required' => 'Bulan wajib diisi.',
+            'bulan.string' => 'Bulan harus berupa teks.',
+            'bulan.max' => 'Bulan maksimal :max karakter.',
+            'jumlah_anggaran.required' => 'Jumlah anggaran wajib diisi.',
+            'jumlah_anggaran.numeric' => 'Jumlah anggaran harus berupa angka.',
+        ];
+    
+        $validator = Validator::make($request->all(), [
             'pemegang_saham' => 'required|string|max:255',
             'tahun' => 'required|integer',
             'bulan' => 'required|string|max:20',
             'jumlah_anggaran' => 'required|numeric',
-        ]);
+            'konfirmasi_tambah' => 'nullable|string',
+        ], $messages);
+    
+        if ($validator->fails()) {
+            $existing = Anggaran::where('pemegang_saham', $request->pemegang_saham)
+                ->where('tahun', $request->tahun)
+                ->first();
+    
+            if ($existing) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors($validator)
+                    ->with([
+                        'confirm' => true,
+                        'existing_data' => $existing,
+                        'request_data' => $request->all(),
+                    ]);
+            }
+    
+            return redirect()->back()
+                ->withInput()
+                ->withErrors($validator);
+        }
+    
+        $existing = Anggaran::where('pemegang_saham', $request->pemegang_saham)
+            ->where('tahun', $request->tahun)
+            ->first();
+    
+        // Kalau udah ada
+        if ($existing) {
+            if ($request->input('konfirmasi_tambah') === 'ya') {
+                $jumlahLama = $existing->jumlah_anggaran;
+                $jumlahBaru = $request->jumlah_anggaran;
+                $totalBaru = $jumlahLama + $jumlahBaru;
+    
+                $createdDate = $existing->created_at->format('d M Y');
+                
 
+                $keterangan = "Anggaran awal: Rp " . number_format($jumlahLama, 0, ',', '.') .
+                    " (dibuat pada " . $createdDate . ")" .
+                    "\nPenambahan tanggal " . now()->format('d M Y') . ": Rp " . number_format($jumlahBaru, 0, ',', '.') .
+                    "\nTotal anggaran sekarang: Rp " . number_format($totalBaru, 0, ',', '.');
+                
+                // Update
+                $existing->jumlah_anggaran = $totalBaru;
+                $existing->keterangan_penambahan = $keterangan;
+                $existing->save();
+    
+                return redirect()->route('anggaran.index')->with('success', 'Anggaran berhasil ditambahkan ke data yang sudah ada.');
+            }
+    
+            // Kalau belum ada konfirmasi, kirim ke view buat munculin modal
+            return redirect()->back()->with([
+                'confirm' => true,
+                'existing_data' => $existing,
+                'request_data' => $request->all()
+            ]);
+        }
+    
+        // Kalau gak ada data duplikat → langsung insert
         Anggaran::create($request->all());
-
+    
         return redirect()->route('anggaran.index')->with('success', 'Anggaran berhasil ditambahkan.');
     }
+    
 
     public function edit($id)
     {
@@ -61,18 +133,32 @@ class AnggaranController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate([
+        $messages = [
+            'pemegang_saham.required' => 'Pemegang saham wajib diisi.',
+            'pemegang_saham.string' => 'Pemegang saham harus berupa teks.',
+            'pemegang_saham.max' => 'Pemegang saham maksimal :max karakter.',
+            'tahun.required' => 'Tahun wajib diisi.',
+            'tahun.integer' => 'Tahun harus berupa angka.',
+            'bulan.required' => 'Bulan wajib diisi.',
+            'bulan.string' => 'Bulan harus berupa teks.',
+            'bulan.max' => 'Bulan maksimal :max karakter.',
+            'jumlah_anggaran.required' => 'Jumlah anggaran wajib diisi.',
+            'jumlah_anggaran.numeric' => 'Jumlah anggaran harus berupa angka.',
+        ];
+    
+        $validatedData = $request->validate([
             'pemegang_saham' => 'required|string|max:255',
             'tahun' => 'required|integer',
             'bulan' => 'required|string|max:20',
             'jumlah_anggaran' => 'required|numeric',
-        ]);
-
+        ], $messages);
+    
         $anggaran = Anggaran::findOrFail($id);
-        $anggaran->update($request->all());
-
+        $anggaran->update($validatedData);
+    
         return redirect()->route('anggaran.index')->with('success', 'Anggaran berhasil diperbarui.');
     }
+    
 
     public function destroy($id)
     {

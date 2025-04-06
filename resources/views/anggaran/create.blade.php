@@ -3,8 +3,75 @@
 @section('title', 'Tambah Anggaran')
 
 @section('content')
+
+@if(session('confirm'))
+<div 
+    x-data="{ open: true }" 
+    x-show="open"
+    x-transition 
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+>
+    <div 
+        @click.away="open = false" 
+        class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6"
+    >
+        <form method="POST" action="{{ route('anggaran.store') }}">
+            @csrf
+            <input type="hidden" name="pemegang_saham" value="{{ session('request_data')['pemegang_saham'] }}">
+            <input type="hidden" name="tahun" value="{{ session('request_data')['tahun'] }}">
+            <input type="hidden" name="bulan" value="{{ session('request_data')['bulan'] }}">
+            <input type="hidden" name="jumlah_anggaran" value="{{ session('request_data')['jumlah_anggaran'] }}">
+            <input type="hidden" name="konfirmasi_tambah" value="ya">
+
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Konfirmasi Penambahan Anggaran</h2>
+
+            <p class="text-gray-700 mb-2">
+                Data anggaran untuk 
+                <strong>{{ session('request_data')['pemegang_saham'] }}</strong> tahun 
+                <strong>{{ session('request_data')['tahun'] }}</strong> sudah ada.
+            </p>
+
+            <p class="text-gray-700 mb-2">
+                Jumlah saat ini: 
+                <strong class="text-green-700">Rp {{ number_format(session('existing_data')->jumlah_anggaran, 0, ',', '.') }}</strong>
+            </p>
+
+            <p class="text-gray-700 mb-4">
+                Apakah kamu ingin menambahkan 
+                <strong class="text-blue-700">Rp {{ number_format(session('request_data')['jumlah_anggaran'], 0, ',', '.') }}</strong> 
+                ke data tersebut?
+            </p>
+
+            <div class="flex justify-end gap-3 pt-4">
+                <a href="{{ route('anggaran.index') }}"
+                   class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition">
+                    Tidak
+                </a>
+                <button type="submit"
+                        class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition">
+                    Ya, Tambahkan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+
+
+
 <div class="max-w-2xl mx-auto mt-12 p-8 bg-white shadow-lg rounded-2xl border border-gray-200">
     <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">📝 Tambah Anggaran CSR</h2>
+    @if($errors->any())
+    <div class="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+        <strong>Terjadi kesalahan:</strong>
+        <ul class="list-disc list-inside mt-2 text-sm">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 
     <form method="POST" action="{{ route('anggaran.store') }}" class="space-y-5">
         @csrf
@@ -165,6 +232,9 @@
         </div>
     </form>
 </div>
+
+
+
 @endsection
 
 @push('scripts')
