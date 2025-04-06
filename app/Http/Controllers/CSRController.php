@@ -134,7 +134,22 @@ class CsrController extends Controller
     
     
     
-    
-
-    
+    public function edit($id)
+{
+    $csr = CSR::findOrFail($id);
+    return view('csr.edit', compact('csr'));
 }
+
+public function destroy($id)
+{
+    $csr = CSR::findOrFail($id);
+    $csr->delete();
+
+    return redirect()->back()->with('success', 'Data CSR berhasil dihapus.');
+
+
+}
+
+
+}
+
