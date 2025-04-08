@@ -4,7 +4,7 @@
         <div class="md:flex md:items-center md:gap-12">
           <a class="block text-teal-600" href="#">
             <span class="sr-only">Home</span>
-            <img src="images/logo.jpg" alt="Logo" class="h-10">
+            <img src="{{ asset('images/logo.jpg') }}" alt="Logo" class="h-10">
           </a>
         </div>
   
@@ -16,7 +16,7 @@
               </li>
   
               <li>
-                <a class="text-gray-500 transition hover:text-gray-500/75" href="#"> Program CSR </a>
+                <a class="text-gray-500 transition hover:text-gray-500/75" href="{{ route("csr.create") }}"> Program CSR </a>
               </li>
   
               <li>

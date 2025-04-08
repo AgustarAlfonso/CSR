@@ -131,8 +131,56 @@ class CsrController extends Controller
             'bulan' => $request->bulan,
         ]);
     }
-    
-    
+
+    public function create()
+{
+    $availableYears = \App\Models\AnggaranCsr::select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun');
+    return view('csr.create', compact('availableYears'));
+     // Asumsinya file blade kamu di resources/views/csr/create.blade.php
+}
+
+public function store(Request $request)
+{
+    // Validasi input awal
+    $request->validate([
+        'nama_program' => 'required|string|max:255',
+        'pemegang_saham' => 'required|string',
+        'tahun' => 'required|integer',
+        'bulan' => 'required|integer|min:1|max:12',
+        'bidang_kegiatan' => 'required|string',
+        'realisasi_csr' => 'required|numeric|min:0',
+        'ket' => 'nullable|string',
+    ]);
+
+    // Cek sisa anggaran
+    $anggaran = \App\Models\AnggaranCsr::where('pemegang_saham', $request->pemegang_saham)
+                ->where('tahun', $request->tahun)
+                ->first();
+
+    if (!$anggaran) {
+        return back()->withErrors(['pemegang_saham' => 'Anggaran untuk pemegang saham dan tahun ini tidak ditemukan.'])->withInput();
+    }
+
+    $sisa = $anggaran->hitungSisaAnggaranTotal();
+
+    if ($request->realisasi_csr > $sisa) {
+        return back()->withErrors(['realisasi_csr' => 'Realisasi dana melebihi sisa anggaran yang tersedia.'])->withInput();
+    }
+
+    // Simpan data CSR
+    \App\Models\Csr::create([
+        'nama_program' => $request->nama_program,
+        'pemegang_saham' => $request->pemegang_saham,
+        'tahun' => $request->tahun,
+        'bulan' => $request->bulan,
+        'bidang_kegiatan' => $request->bidang_kegiatan,
+        'realisasi_csr' => $request->realisasi_csr,
+        'ket' => $request->ket,
+    ]);
+
+    return redirect()->route('dashboard')->with('success', 'Program CSR berhasil ditambahkan.');
+}
+
     
     public function edit($id)
 {
@@ -149,6 +197,32 @@ public function destroy($id)
 
 
 }
+
+public function getSisaAnggaran(Request $request)
+{
+    $request->validate([
+        'pemegang_saham' => 'required|string',
+        'tahun' => 'required|integer',
+    ]);
+
+    $anggaran = \App\Models\AnggaranCsr::where('pemegang_saham', $request->pemegang_saham)
+                ->where('tahun', $request->tahun)
+                ->first();
+
+    if (!$anggaran) {
+        return response()->json([
+            'sisa' => 0,
+            'message' => 'Tidak ada anggaran untuk data ini.'
+        ]);
+    }
+
+    return response()->json([
+        'sisa' => $anggaran->hitungSisaAnggaranTotal(),
+        'message' => 'Sisa anggaran berhasil diambil.'
+    ]);
+}
+
+
 
 
 }
