@@ -84,18 +84,20 @@
                     <legend class="sr-only">Filter Tahun</legend>
                   
                     <div class="p-3 grid grid-cols-2 md:grid-cols-3 gap-3">
-                      @foreach($daftarTahun as $tahun)
-                        <label class="inline-flex items-center gap-3">
-                          <input 
-                            type="checkbox" 
-                            name="tahun[]" 
-                            value="{{ $tahun }}" 
-                            class="size-5 rounded border-gray-300 shadow-sm"
-                            id="checkbox-tahun-{{ $tahun }}"
-                          />
-                          <span class="font-medium text-gray-700">{{ $tahun }}</span>
-                        </label>
-                      @endforeach
+                        @foreach($daftarTahun as $tahun)
+  <label class="inline-flex items-center gap-3">
+    <input 
+      type="radio" 
+      name="tahun[]" 
+      value="{{ $tahun }}" 
+      class="size-5 rounded border-gray-300 shadow-sm"
+      id="radio-tahun-{{ $tahun }}"
+  {{ request('tahun', $tahunTerbaru) == $tahun ? 'checked' : '' }}    />
+    <span class="font-medium text-gray-700">{{ $tahun }}</span>
+  </label>
+@endforeach
+
+                      
                     </div>
                   </fieldset>
                   
@@ -115,6 +117,18 @@
 @endsection
 
 @push('scripts')
+
+<script>
+  document.querySelector('form#filterForm').addEventListener('submit', function (e) {
+    const tahunCheckboxes = document.querySelectorAll('input[name="tahun[]"]:checked');
+    if (tahunCheckboxes.length === 0) {
+      e.preventDefault();
+      alert('Pilih minimal satu tahun dulu ya sayang 🤍');
+    }
+  });
+</script>
+
+
 <script>
     function updateDetailCounts() {
     const form = document.getElementById('filterForm');

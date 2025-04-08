@@ -13,8 +13,7 @@ class AnggaranCsr extends Model
 
     protected $fillable = [
         'pemegang_saham',  // Nama pemegang saham
-        'tahun',           // Tahun anggaran
-        'bulan',           // Bulan anggaran
+        'tahun',           // Tahun anggaran       
         'jumlah_anggaran'  // Total dana yang diberikan
     ];
 
@@ -74,6 +73,11 @@ public function hitungSisaAnggaranTotal()
     return max($this->jumlah_anggaran - $totalRealisasi, 0);
 }
     
+public function penambahan()
+{
+    return $this->hasOne(PenambahanAnggaran::class, 'anggaran_csr_id');
+}
+
 
     
 
