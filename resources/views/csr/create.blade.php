@@ -4,6 +4,78 @@
 
 @section('content')
 
+@if (session('csr_error'))
+<div 
+    x-data="{ open: true }" 
+    x-show="open"
+    x-transition 
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+>
+    <div 
+        @click.away="open = false" 
+        class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6"
+    >
+        <h2 class="text-xl font-bold text-red-600 mb-4">Gagal Menyimpan Program CSR</h2>
+
+        <p class="text-gray-700 mb-4">
+            <strong>Alasan:</strong> {{ session('csr_error') }}
+        </p>
+
+        @if (session('request_data'))
+        <ul class="text-sm text-gray-600 mb-4">
+            <li><strong>Pemegang Saham:</strong> {{ session('request_data')['pemegang_saham'] }}</li>
+            <li><strong>Tahun:</strong> {{ session('request_data')['tahun'] }}</li>
+            <li><strong>Realisasi Diinput:</strong> Rp {{ number_format(session('request_data')['realisasi_csr'], 0, ',', '.') }}</li>
+        </ul>
+        @endif
+
+        <div class="flex justify-end pt-4">
+            <button 
+                @click="open = false" 
+                class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition">
+                Kembali
+            </button>
+        </div>
+    </div>
+</div>
+@endif
+
+@if ($errors->any())
+<div 
+    x-data="{ open: true }" 
+    x-show="open"
+    x-transition 
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+>
+    <div 
+        @click.away="open = false" 
+        class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6"
+    >
+        <h2 class="text-xl font-bold text-red-600 mb-4">Terjadi Kesalahan Validasi</h2>
+
+        <p class="text-gray-700 mb-4">
+            Mohon periksa kembali inputan kamu. Berikut detail error yang ditemukan:
+        </p>
+
+        <ul class="list-disc list-inside text-sm text-gray-600 mb-4 space-y-1">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+
+        <div class="flex justify-end pt-4">
+            <button 
+                @click="open = false" 
+                class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition">
+                Oke, Saya Mengerti
+            </button>
+        </div>
+    </div>
+</div>
+@endif
+
+
+
 <div class="max-w-5xl mx-auto mt-12 bg-white shadow-lg rounded-2xl border border-gray-200 p-8" x-data="formCSR()">
     <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">➕ Tambah Program CSR</h2>
 

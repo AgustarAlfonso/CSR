@@ -213,7 +213,23 @@ class CsrController extends Controller
         'bidang_kegiatan' => 'required|string',
         'realisasi_csr' => 'required|numeric|min:0',
         'ket' => 'nullable|string',
+    ], [
+        'nama_program.required' => 'Nama program wajib diisi.',
+        'nama_program.max' => 'Nama program tidak boleh lebih dari 255 karakter.',
+        'pemegang_saham.required' => 'Pemegang saham wajib dipilih.',
+        'tahun.required' => 'Tahun wajib diisi.',
+        'tahun.integer' => 'Tahun harus berupa angka.',
+        'bulan.required' => 'Bulan wajib dipilih.',
+        'bulan.integer' => 'Bulan harus berupa angka.',
+        'bulan.min' => 'Bulan tidak valid (minimal Januari).',
+        'bulan.max' => 'Bulan tidak valid (maksimal Desember).',
+        'bidang_kegiatan.required' => 'Bidang kegiatan wajib diisi.',
+        'realisasi_csr.required' => 'Realisasi CSR wajib diisi.',
+        'realisasi_csr.numeric' => 'Realisasi CSR harus berupa angka.',
+        'realisasi_csr.min' => 'Realisasi CSR tidak boleh negatif.',
+        'ket.string' => 'Keterangan harus berupa teks.',
     ]);
+    
 
     $pemegangSaham = $request->pemegang_saham;
     $tahun = $request->tahun;
@@ -258,8 +274,12 @@ class CsrController extends Controller
     // ]);
 
     if ($totalRealisasiSetelahInput > $jumlahAnggaran) {
-        return back()->withErrors(['realisasi_csr' => 'Realisasi melebihi anggaran yang tersedia (termasuk dari tahun sebelumnya).'])->withInput();
+        return back()
+            ->with('csr_error', 'Realisasi melebihi anggaran yang tersedia (termasuk dari tahun sebelumnya).')
+            ->with('request_data', $request->all())
+            ->withInput();
     }
+    
 
     // Simpan data
     \App\Models\Csr::create([
