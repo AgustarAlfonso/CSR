@@ -17,6 +17,7 @@
     let currentChartType = "pemegang_saham";
 
     function updateChart(data, labels) {
+    data = data.map(Number); // <- Ini tambahan penting!
     let ctx = document.getElementById("csrPieChart").getContext("2d");
     if (window.csrChart) {
         window.csrChart.destroy();
@@ -24,25 +25,21 @@
 
     let total = data.reduce((a, b) => a + b, 0);
 
-    console.log("Total CSR Data:", total);
-    console.log("Pie Chart Data:", data);
-    console.log("Labels:", labels);
-
     window.csrChart = new Chart(ctx, {
         type: "pie",
         data: {
             labels: labels,
             datasets: [{
                 data: data,
-                backgroundColor: ["#ff6384", "#36a2eb", "#ffce56"]
+                backgroundColor: ["#ff6384", "#36a2eb", "#ffce56", "#8bc34a", "#ff9800", "#9c27b0", "#00bcd4"]
             }]
         },
         options: {
             plugins: {
                 datalabels: {
                     formatter: (value) => {
-                        if (total === 0) return "0%";  // Cegah NaN%
-                        return ((value / total) * 100).toFixed(2) + "%"; // Pastikan persen dihitung dengan angka
+                        if (!total || total === 0) return "0%";
+                        return ((value / total) * 100).toFixed(2) + "%";
                     },
                     color: "#fff",
                     font: { weight: "bold" }
@@ -56,9 +53,6 @@
 
 
 
-
-
-
 function fetchFilteredData() {
     let filters = {
         pemegang_saham: document.getElementById("pemegang_saham").value,
@@ -67,30 +61,35 @@ function fetchFilteredData() {
         bulan: document.getElementById("bulan").value
     };
 
+    let url = currentChartType === "bidang_kegiatan"
+        ? "{{ route('csr.chart.bidang_kegiatan') }}"
+        : "{{ route('csr.filter') }}";
+
     $.ajax({
-    url: "{{ route('csr.filter') }}",
-    type: "POST",
-    data: filters,
-    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-    success: function(response) {
-        console.log("Filtered Data Response:", response);
+        url: url,
+        type: "POST",
+        data: filters,
+        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+        success: function(response) {
+            if (currentChartType === "bidang_kegiatan") {
+                updateChart(response.data, response.labels);
+            } else {
+                let jumlahAnggaran = parseFloat(response.jumlah_anggaran) || 0;
+                let realisasiCsr = parseFloat(response.realisasi_csr) || 0;
+                let sisaCsr = parseFloat(response.sisa_csr) || 0;
 
-        let jumlahAnggaran = parseFloat(response.jumlah_anggaran) || 0;
-        let realisasiCsr = parseFloat(response.realisasi_csr) || 0;
-        let sisaCsr = parseFloat(response.sisa_csr) || 0;
-
-        let data = [jumlahAnggaran, realisasiCsr, sisaCsr];
-        let labels = ["Jumlah Anggaran", "Realisasi CSR", "Sisa CSR"];
-
-        console.log("Final Data for Chart:", data);
-        updateChart(data, labels);
-    },
-    error: function(xhr, status, error) {
-        console.error("AJAX Error:", error);
-    }
-});
-
+                let data = [jumlahAnggaran, realisasiCsr, sisaCsr];
+                let labels = ["Jumlah Anggaran", "Realisasi CSR", "Sisa CSR"];
+                updateChart(data, labels);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("AJAX Error:", error);
+        }
+    });
 }
+
+
 
 
     document.getElementById("togglePemegangSaham").addEventListener("click", function() {

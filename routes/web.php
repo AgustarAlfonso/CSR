@@ -17,6 +17,7 @@ Route::post('/csr/store', [\App\Http\Controllers\CsrController::class, 'store'])
 Route::get('csr/{csr}/edit', [\App\Http\Controllers\CsrController::class, 'edit'])->name('csr.edit');
 Route::delete('csr/{csr}', [\App\Http\Controllers\CsrController::class, 'destroy'])->name('csr.destroy');
 Route::get('/sisa-anggaran', [\App\Http\Controllers\CsrController::class, 'getSisaAnggaran'])->name('csr.sisa-anggaran');
+Route::post('/csr/chart/bidang-kegiatan', [CsrController::class, 'chartByBidangKegiatan'])->name('csr.chart.bidang_kegiatan');
 
 
 Route::get('/anggaran', [AnggaranController::class, 'index'])->name('anggaran.index');

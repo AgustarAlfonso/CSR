@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AnggaranCsr;
 use Illuminate\Http\Request;
 use App\Models\Csr;
+use Illuminate\Support\Facades\DB;
 
 class CsrController extends Controller
 {
@@ -95,6 +96,39 @@ class CsrController extends Controller
         ]);
     }
     
+    public function chartByBidangKegiatan(Request $request)
+{
+    $query = Csr::query();
+
+    if (!empty($request->pemegang_saham) && $request->pemegang_saham !== 'semua') {
+        $query->whereIn('pemegang_saham', (array) $request->pemegang_saham);
+    }
+
+    if (!empty($request->tahun)) {
+        $query->where('tahun', $request->tahun);
+    }
+
+    if (!empty($request->bulan)) {
+        $query->where('bulan', $request->bulan);
+    }
+
+    if (!empty($request->bidang_kegiatan) && $request->bidang_kegiatan !== 'semua') {
+        $query->whereIn('bidang_kegiatan', (array) $request->bidang_kegiatan);
+    }
+
+    $data = $query->select('bidang_kegiatan', DB::raw('SUM(realisasi_csr) as total'))
+        ->groupBy('bidang_kegiatan')
+        ->get();
+
+    $labels = $data->pluck('bidang_kegiatan');
+    $values = $data->pluck('total');
+
+    return response()->json([
+        'labels' => $labels,
+        'data' => $values
+    ]);
+}
+
     
 
 

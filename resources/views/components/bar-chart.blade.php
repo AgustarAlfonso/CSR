@@ -91,6 +91,35 @@
     });
 }
 
+function loadBarChartByBidangKegiatan() {
+    let filters = {
+        pemegang_saham: $('#pemegang_saham').val(),
+        bidang_kegiatan: $('#bidang_kegiatan').val(),
+        tahun: $('#tahun').val(),
+        bulan: $('#bulan').val(),
+    };
+
+    $.ajax({
+        url: '{{ route("csr.chart.bidang_kegiatan") }}',
+        type: 'POST',
+        data: filters,
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+        success: function(response) {
+            console.log("Bar Chart (Bidang Kegiatan):", response);
+
+            // Konversi nilai ke number
+            let data = response.data.map(Number);
+            let labels = response.labels;
+
+            updateBarChart(data, labels);
+        },
+        error: function(xhr) {
+            console.error(xhr.responseText);
+        }
+    });
+}
+
+
 
     document.getElementById("toggleBarPemegangSaham").addEventListener("click", function() {
         currentBarChartType = "pemegang_saham";
@@ -107,13 +136,20 @@
         this.classList.remove("btn-outline-primary");
         document.getElementById("toggleBarPemegangSaham").classList.remove("btn-primary");
         document.getElementById("toggleBarPemegangSaham").classList.add("btn-outline-primary");
-        loadBarChartFromAPI();
+        loadBarChartByBidangKegiatan();
     });
 
     // Event listener untuk filter agar data otomatis terupdate
     document.addEventListener("DOMContentLoaded", function() {
         document.querySelectorAll("#pemegang_saham, #bidang_kegiatan, #tahun, #bulan").forEach(element => {
-            element.addEventListener("change", loadBarChartFromAPI);
+            element.addEventListener("change", function () {
+    if (currentBarChartType === "bidang_kegiatan") {
+        loadBarChartByBidangKegiatan();
+    } else {
+        loadBarChartFromAPI();
+    }
+});
+
         });
 
         // Load pertama kali
