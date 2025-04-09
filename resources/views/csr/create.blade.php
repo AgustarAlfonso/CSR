@@ -171,10 +171,19 @@
 
             <!-- Realisasi -->
 <!-- Realisasi -->
-<div>
+<div x-data="{ realisasi_csr: '', formatted: '' }" x-init="$watch('realisasi_csr', value => {
+    let angka = value.replace(/\D/g, '');
+    formatted = new Intl.NumberFormat('id-ID').format(angka);
+})">
     <label class="block text-sm font-semibold text-gray-700 mb-1">Realisasi Dana (Rp)</label>
-    <input type="number" name="realisasi_csr" x-model="realisasi_csr"
-        class="w-full px-4 py-2 border rounded-lg" required>
+    
+    <input type="text" 
+        name="realisasi_csr"
+        x-model="realisasi_csr"
+        class="w-full px-4 py-2 border rounded-lg" 
+        required
+        @input="realisasi_csr = $event.target.value.replace(/\D/g, '')" 
+        :value="formatted">
 </div>
 
 
@@ -218,6 +227,13 @@
             <p class="text-sm" :class="(realisasi_csr && parseInt(realisasi_csr) > sisaAnggaran) ? 'text-red-700' : 'text-gray-700'">
                 Tahun: <span class="font-medium" x-text="tahun"></span>
             </p>
+
+            <template x-if="isFallback">
+                <p class="text-xs text-yellow-600 bg-yellow-100 inline-block px-2 py-1 rounded mt-1">
+                    ⚠️ Data anggaran dari tahun sebelumnya
+                </p>
+            </template>
+            
     
             <div class="mt-4 p-4 rounded-lg shadow-sm border"
                 :class="(realisasi_csr && parseInt(realisasi_csr) > sisaAnggaran) ? 'border-red-400 bg-red-100' : 'border-green-300 bg-white'">
@@ -252,6 +268,7 @@ function formCSR() {
         selectedBulan: '',
         selectedBidang: '',
         sisaAnggaran: null,
+        isFallback: false,
         realisasi_csr: '',
         openDropdown: {
             pemegang: false,
@@ -264,18 +281,21 @@ function formCSR() {
             return 'Rp ' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         },
         cekSisaAnggaran() {
-            if (this.pemegang_saham && this.tahun) {
-                fetch(`{{ route('csr.sisa-anggaran') }}?pemegang_saham=${this.pemegang_saham}&tahun=${this.tahun}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        this.sisaAnggaran = data.sisa;
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        this.sisaAnggaran = null;
-                    });
-            }
-        }
+    if (this.pemegang_saham && this.tahun) {
+        fetch(`{{ route('csr.sisa-anggaran') }}?pemegang_saham=${this.pemegang_saham}&tahun=${this.tahun}`)
+            .then(res => res.json())
+            .then(data => {
+                this.sisaAnggaran = data.sisa;
+                this.isFallback = data.fallback ?? false;
+            })
+            .catch(err => {
+                console.error(err);
+                this.sisaAnggaran = null;
+                this.isFallback = false;
+            });
+    }
+}
+
     }
 }
 
