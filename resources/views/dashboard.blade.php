@@ -30,16 +30,17 @@
                         @endforeach
                     </select>
                 </div>
-
                 <div class="mb-3">
                     <label for="tahun" class="form-label">Tahun</label>
                     <select id="tahun" class="form-select">
-                        <option value="">Semua</option>
                         @foreach($years as $year)
-                            <option value="{{ $year }}">{{ $year }}</option>
+                            <option value="{{ $year }}" {{ $year == now()->year ? 'selected' : '' }}>
+                                {{ $year }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
+                
 
                 @php
                 $namaBulan = [

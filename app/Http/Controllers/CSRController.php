@@ -21,20 +21,48 @@ class CsrController extends Controller
     
     public function filter(Request $request)
     {
-        $anggaranQuery = AnggaranCsr::query();
+        $tahunSekarang = now()->year;
+        $tahunFilter = !empty($request->tahun) ? (int)$request->tahun : $tahunSekarang;
     
+        $anggaranQuery = AnggaranCsr::query()->where('tahun', $tahunFilter);
+    
+        // Filter pemegang saham
         if (!empty($request->pemegang_saham) && $request->pemegang_saham !== 'semua') {
             $anggaranQuery->whereIn('pemegang_saham', (array) $request->pemegang_saham);
         }
     
-        if (!empty($request->tahun)) {
-            $anggaranQuery->whereIn('tahun', (array) $request->tahun);
-        }
-    
-        // Ambil filter bidang kegiatan jika ada
         $bidangKegiatan = !empty($request->bidang_kegiatan) ? (array) $request->bidang_kegiatan : null;
     
         $anggaranList = $anggaranQuery->get();
+    
+        // Cek fallback jika kosong dan tahun filter adalah tahun sekarang
+        if ($anggaranList->isEmpty() && $tahunFilter === $tahunSekarang) {
+            $tahunSebelumnya = $tahunSekarang - 1;
+    
+            // Ambil semua pemegang saham
+            $semuaPemegangSaham = AnggaranCsr::select('pemegang_saham')->distinct()->pluck('pemegang_saham')->toArray();
+    
+            // Jika difilter, pakai filter itu
+            $pemegangSahamFilter = !empty($request->pemegang_saham) && $request->pemegang_saham !== 'semua'
+                ? (array) $request->pemegang_saham
+                : $semuaPemegangSaham;
+    
+            // Ambil data dari tahun lalu
+            $anggaranList = AnggaranCsr::where('tahun', $tahunSebelumnya)
+                ->whereIn('pemegang_saham', $pemegangSahamFilter)
+                ->get()
+                ->filter(function ($item) {
+                    return $item->hitungSisaAnggaranTotal() > 0;
+                })
+                ->map(function ($item) use ($tahunSekarang) {
+                    $clone = clone $item;
+                    $clone->tahun = $tahunSekarang;
+                    $clone->jumlah_anggaran = $item->hitungSisaAnggaranTotal();
+                    $clone->sisa_dari_tahun_lalu = true;
+                    return $clone;
+                });
+        }
+    
         $result = [];
     
         foreach ($anggaranList as $anggaran) {
@@ -56,7 +84,7 @@ class CsrController extends Controller
         $totalAnggaran = !empty($request->bulan) 
             ? array_sum(array_column($result, 'total_anggaran'))
             : $anggaranList->sum('jumlah_anggaran');
-            
+    
         $totalRealisasi = array_sum(array_column($result, 'realisasi'));
         $sisaCsr = max($totalAnggaran - $totalRealisasi, 0);
     
@@ -66,6 +94,7 @@ class CsrController extends Controller
             'sisa_csr' => $sisaCsr
         ]);
     }
+    
     
 
 
