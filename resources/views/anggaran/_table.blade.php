@@ -15,9 +15,17 @@
 
         <tr class="*:text-gray-900 *:first:font-medium">
           <td class="px-3 py-2 align-top">{{ $loop->iteration }}</td>
-          <td class="px-3 py-2 align-top">{{ $row->pemegang_saham }}</td>
-          <td class="px-3 py-2 align-top">{{ $row->tahun }}</td>
+          <td class="px-3 py-2 align-top">
+            {{ $row->pemegang_saham }}
+            @if (!empty($row->sisa_dari_tahun_lalu))
+                <small class="text-red-500 block italic">* memakai sisa anggaran {{ $tahunFilter - 1 }}</small>
+            @endif
+        </td>
+        <td class="px-3 py-2 align-top">{{ $row->tahun }}</td>
 
+        
+        
+        
           <td class="px-3 py-2 align-top text-sm text-gray-800">
               Rp{{ number_format($row->jumlah_anggaran, 0, ',', '.') }}
           </td>
@@ -37,7 +45,10 @@
             </svg>
           </button>
 
-
+                    @php
+            $isFallback = !empty($row->sisa_dari_tahun_lalu); // boolean flag
+          @endphp
+            @if (!$isFallback)
             <!-- Edit -->
             <a href="{{ route('anggaran.edit', $row->id) }}" 
               title="Edit"
@@ -57,6 +68,9 @@
                   d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4h6v3" />
               </svg>
             </button>
+            @else
+
+            @endif
 
             <!-- Modal Riwayat Penambahan -->
 <div
@@ -72,20 +86,39 @@ x-transition
     $riwayat = $row->penambahan()->latest('tanggal_input')->get();
   @endphp
 
-  @if($riwayat->isEmpty())
-    <p class="text-sm text-gray-500">Belum ada data penambahan.</p>
-  @else
-    <ul class="space-y-3 max-h-60 overflow-y-auto">
-      @foreach ($riwayat as $item)
-        <li class="bg-gray-50 border rounded p-3 text-sm">
-          <div><strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($item->tanggal_input)->translatedFormat('d M Y') }}</div>
-          <div><strong>Dana Baru:</strong> Rp{{ number_format($item->dana_baru, 0, ',', '.') }}</div>
-          <div><strong>Sisa Tahun Lalu:</strong> Rp{{ number_format($item->sisa_tahun_lalu, 0, ',', '.') }}</div>
-          <div><strong>Total Setelah Penambahan:</strong> Rp{{ number_format($item->total_anggaran_tahun_ini, 0, ',', '.') }}</div>
-        </li>
-      @endforeach
-    </ul>
-  @endif
+@php
+$riwayat = $row->penambahan()->latest('tanggal_input')->get();
+
+$isFallback = !empty($row->sisa_dari_tahun_lalu); // ← flag dari controller
+
+if ($isFallback) {
+    $sisa = $row->jumlah_anggaran; // ← karena fallback = jumlah sisa tahun lalu
+    $riwayat = collect([
+        (object)[
+            'tanggal_input' => \Carbon\Carbon::createFromDate(now()->year, 1, 1),
+            'dana_baru' => 0,
+            'sisa_tahun_lalu' => $sisa,
+            'total_anggaran_tahun_ini' => $sisa
+        ]
+    ]);
+}
+@endphp
+
+@if($riwayat->isEmpty())
+<p class="text-sm text-gray-500">Belum ada data penambahan.</p>
+@else
+<ul class="space-y-3 max-h-60 overflow-y-auto">
+  @foreach ($riwayat as $item)
+    <li class="bg-gray-50 border rounded p-3 text-sm">
+      <div><strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($item->tanggal_input)->translatedFormat('d M Y') }}</div>
+      <div><strong>Dana Baru:</strong> Rp{{ number_format($item->dana_baru, 0, ',', '.') }}</div>
+      <div><strong>Sisa Tahun Lalu:</strong> Rp{{ number_format($item->sisa_tahun_lalu, 0, ',', '.') }}</div>
+      <div><strong>Total Setelah Penambahan:</strong> Rp{{ number_format($item->total_anggaran_tahun_ini, 0, ',', '.') }}</div>
+    </li>
+  @endforeach
+</ul>
+@endif
+
 
   <div class="mt-5 text-right">
     <button @click="showModalId = null"
@@ -136,11 +169,16 @@ x-transition
         <td></td>
       </tr>
     </tfoot>
+    @if ($fallback)
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 p-4 mb-4">
+        <p class="font-semibold">Catatan:</p>
+        <p>Data anggaran tahun <strong>{{ $tahunFilter }}</strong> belum tersedia.</p>
+        <p>Menampilkan <strong>sisa anggaran tahun {{ $tahunFilter - 1 }}</strong> sebagai referensi sementara.</p>
+    </div>
+    @endif
   </table>
 
-  <div class="mt-4">
-    {{ $anggaran->links('pagination::tailwind') }}
-  </div>
+
 </div>
 
   

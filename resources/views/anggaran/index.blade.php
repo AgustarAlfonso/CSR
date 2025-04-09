@@ -79,29 +79,26 @@
           <details class="group rounded border border-gray-300 shadow-sm overflow-hidden">
             <summary class="flex justify-between p-3 text-sm font-medium text-gray-700 cursor-pointer">
                 <span>Tahun</span>
-                <span class="text-sm bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium" data-count-label="tahun">(0 dipilih)</span>            </summary>
-                <fieldset>
-                    <legend class="sr-only">Filter Tahun</legend>
-                  
-                    <div class="p-3 grid grid-cols-2 md:grid-cols-3 gap-3">
-                        @foreach($daftarTahun as $tahun)
-  <label class="inline-flex items-center gap-3">
-    <input 
-      type="radio" 
-      name="tahun[]" 
-      value="{{ $tahun }}" 
-      class="size-5 rounded border-gray-300 shadow-sm"
-      id="radio-tahun-{{ $tahun }}"
-  {{ request('tahun', $tahunTerbaru) == $tahun ? 'checked' : '' }}    />
-    <span class="font-medium text-gray-700">{{ $tahun }}</span>
-  </label>
-@endforeach
-
-                      
-                    </div>
-                  </fieldset>
-                  
-          </details>
+                <span class="text-sm bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium" data-count-label="tahun">(1 dipilih)</span>
+            </summary>
+            <fieldset>
+                <legend class="sr-only">Filter Tahun</legend>
+                <div class="p-3 grid grid-cols-2 md:grid-cols-3 gap-3">
+                    @foreach($daftarTahun as $tahun)
+                        <label class="inline-flex items-center gap-3">
+                            <input 
+                                type="radio" 
+                                name="tahun" 
+                                value="{{ $tahun }}" 
+                                class="size-5 rounded border-gray-300 shadow-sm"
+                                {{ (int) request('tahun', $tahunFilter) === (int) $tahun ? 'checked' : '' }} />
+                            <span class="font-medium text-gray-700">{{ $tahun }}</span>
+                        </label>
+                    @endforeach
+                </div>
+            </fieldset>
+        </details>
+        
       
           <button type="submit" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm">Terapkan Filter</button>
         </div>
@@ -118,7 +115,7 @@
 
 @push('scripts')
 
-<script>
+{{-- <script>
   document.querySelector('form#filterForm').addEventListener('submit', function (e) {
     const tahunCheckboxes = document.querySelectorAll('input[name="tahun[]"]:checked');
     if (tahunCheckboxes.length === 0) {
@@ -126,7 +123,7 @@
       alert('Pilih minimal satu tahun dulu ya sayang 🤍');
     }
   });
-</script>
+</script> --}}
 
 
 <script>

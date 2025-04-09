@@ -7,50 +7,88 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\AnggaranCsr;
 use App\Models\PenambahanAnggaran;
+use Carbon\Carbon;
+
 class AnggaranController extends Controller
 {
+
+
+
     public function index(Request $request)
     {
-        $query = Anggaran::query();
+        $tahunSekarang = now()->year;
+        $tahunFilter = $request->filled('tahun') ? (int)$request->tahun : $tahunSekarang;
     
-        $tahunTerbaru = Anggaran::max('tahun');
+        $query = AnggaranCsr::query()->where('tahun', $tahunFilter);
     
-        // Default ke tahun terbaru kalau belum dipilih
-        if (!$request->filled('tahun')) {
-            $request->merge(['tahun' => $tahunTerbaru]);
-        }
-    
-        // Filter pemegang saham (bisa banyak)
         if ($request->filled('pemegang_saham')) {
             $query->whereIn('pemegang_saham', $request->pemegang_saham);
         }
     
-        // Filter tahun (hanya satu)
-        if ($request->filled('tahun')) {
-            $query->where('tahun', $request->tahun);
+        $anggaranTahunIni = $query->get();
+        $fallback = false;
+    
+        // Ambil semua pemegang saham
+        $semuaPemegangSaham = AnggaranCsr::select('pemegang_saham')->distinct()->pluck('pemegang_saham')->toArray();
+    
+        // Pemegang saham yang sudah punya data tahun ini
+        $sudahAda = $anggaranTahunIni->pluck('pemegang_saham')->toArray();
+    
+        // Cari pemegang saham yang belum ada datanya
+        $belumAda = array_diff($semuaPemegangSaham, $sudahAda);
+    
+        $fallbackCollection = collect();
+    
+        if (!empty($belumAda)) {
+            $tahunSebelumnya = $tahunFilter - 1;
+    
+            $fallbacks = AnggaranCsr::whereIn('pemegang_saham', $belumAda)
+                ->where('tahun', $tahunSebelumnya)
+                ->get()
+                ->filter(function ($item) {
+                    return $item->hitungSisaAnggaranTotal() > 0;
+                })
+                ->map(function ($item) use ($tahunFilter) {
+                    $clone = clone $item;
+                    $clone->tahun = $tahunFilter;
+                    $clone->jumlah_anggaran = $item->hitungSisaAnggaranTotal();
+                    $clone->sisa_dari_tahun_lalu = true;
+                    return $clone;
+                });
+    
+            if ($fallbacks->isNotEmpty()) {
+                $fallback = true;
+                $fallbackCollection = $fallbacks;
+            }
         }
     
-        // Data paginasi dan total anggaran
-        $anggaran = $query->paginate(21);
-        $totalAnggaran = $query->sum('jumlah_anggaran');
+        // Gabungkan data asli + fallback
+        $anggaran = $anggaranTahunIni->concat($fallbackCollection);
     
-        // Data untuk pilihan filter
-        $daftarPemegangSaham = Anggaran::select('pemegang_saham')->distinct()->pluck('pemegang_saham');
-        $daftarTahun = Anggaran::select('tahun')->distinct()->pluck('tahun');
+        $totalAnggaran = $anggaran->sum('jumlah_anggaran');
     
-        // Untuk AJAX render (jika pakai live reload atau Inertia)
-        if ($request->ajax()) {
-            return view('anggaran._table', compact('anggaran', 'totalAnggaran'))->render();
+        // Daftar tahun termasuk tahun sekarang jika belum ada di DB
+        $daftarTahun = AnggaranCsr::select('tahun')->distinct()->pluck('tahun');
+        if (!$daftarTahun->contains($tahunSekarang)) {
+            $daftarTahun->push($tahunSekarang);
         }
+        $daftarTahun = $daftarTahun->sort()->values();
+    
+        $daftarPemegangSaham = AnggaranCsr::select('pemegang_saham')->distinct()->pluck('pemegang_saham');
     
         return view('anggaran.index', compact(
-            'anggaran', 
-            'totalAnggaran', 
-            'daftarPemegangSaham', 
+            'anggaran',
+            'totalAnggaran',
             'daftarTahun',
-            'tahunTerbaru'
+            'daftarPemegangSaham',
+            'tahunFilter',
+            'fallback'
         ));
     }
+    
+
+
+    
     
     
 
