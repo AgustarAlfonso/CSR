@@ -336,6 +336,8 @@ function formCSR() {
     return {
         pemegang_saham: '',
         tahun: '',
+        selectedBulan: '',
+        selectedBidang: '',
         selectedTahun: '',
         sisaAnggaran: null,
         isFallback: false,
