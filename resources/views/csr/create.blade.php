@@ -212,34 +212,35 @@
             </div>
 
             <!-- Bulan -->
-            <div>
-                <div x-data="{ open: false, selectedBulan: '' }" class="relative">
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Bulan</label>
-                    <div class="relative inline-flex w-full">
-                        <span class="inline-flex w-full divide-x divide-gray-300 overflow-hidden rounded border bg-white shadow-sm">
-                            <button type="button" @click="open = !open"
-                                    class="flex-1 px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-50"
-                                    x-text="selectedBulan || '-- Pilih Bulan --'"></button>
-                            <button type="button" @click="open = !open" class="px-3 py-2 text-sm text-gray-700">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </button>
-                        </span>
-                        <input type="hidden" name="bulan" :value="selectedBulan" required>
-                        <div x-show="open" @click.away="open = false"
-                             class="absolute z-10 mt-2 w-full max-h-60 overflow-auto rounded border bg-white shadow-sm">
-                            @foreach(range(1, 12) as $b)
-                                <a href="#" @click.prevent="selectedBulan = '{{ $b }}'; open = false"
-                                   class="block px-3 py-2 text-sm hover:bg-gray-50">
-                                    {{ DateTime::createFromFormat('!m', $b)->format('F') }}
-                                </a>
-                            @endforeach
-                        </div>
+            <div x-data="{ open: false, selectedBulan: '', selectedBulanLabel: '' }" class="relative">
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Bulan</label>
+                <div class="relative inline-flex w-full">
+                    <span class="inline-flex w-full divide-x divide-gray-300 overflow-hidden rounded border bg-white shadow-sm">
+                        <button type="button" @click="open = !open"
+                                class="flex-1 px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-50"
+                                x-text="selectedBulanLabel || '-- Pilih Bulan --'"></button>
+                        <button type="button" @click="open = !open" class="px-3 py-2 text-sm text-gray-700">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                    </span>
+                    <!-- input yang dikirim ke backend tetap angka -->
+                    <input type="hidden" name="bulan" :value="selectedBulan" required>
+                    <div x-show="open" @click.away="open = false"
+                         class="absolute z-10 mt-2 w-full max-h-60 overflow-auto rounded border bg-white shadow-sm">
+                        @foreach(range(1, 12) as $b)
+                            @php $namaBulan = DateTime::createFromFormat('!m', $b)->format('F'); @endphp
+                            <a href="#"
+                               @click.prevent="selectedBulan = '{{ $b }}'; selectedBulanLabel = '{{ $namaBulan }}'; open = false"
+                               class="block px-3 py-2 text-sm hover:bg-gray-50">
+                                {{ $namaBulan }}
+                            </a>
+                        @endforeach
                     </div>
                 </div>
-                
             </div>
+            
 
             <!-- Realisasi -->
 <!-- Realisasi -->

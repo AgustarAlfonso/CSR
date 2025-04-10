@@ -20,8 +20,27 @@
                     <td class="px-3 py-2 whitespace-normal break-words max-w-xs">{{ $row->nama_program }}</td>
                     <td class="px-3 py-2 whitespace-nowrap">{{ $row->bidang_kegiatan }}</td>
                     <td class="px-3 py-2 whitespace-nowrap">{{ $row->pemegang_saham }}</td>
-                    <td class="px-3 py-2 whitespace-nowrap">{{ $row->bulan }}</td>
-                    <td class="px-3 py-2 whitespace-nowrap">{{ $row->tahun }}</td>
+                    @php
+                    $namaBulan = [
+                        1 => 'Januari',
+                        2 => 'Februari',
+                        3 => 'Maret',
+                        4 => 'April',
+                        5 => 'Mei',
+                        6 => 'Juni',
+                        7 => 'Juli',
+                        8 => 'Agustus',
+                        9 => 'September',
+                        10 => 'Oktober',
+                        11 => 'November',
+                        12 => 'Desember',
+                    ];
+                @endphp
+                
+                <td class="px-3 py-2 whitespace-nowrap">
+                    {{ $namaBulan[(int) $row->bulan] ?? 'Bulan Tidak Valid' }}
+                </td>
+                                    <td class="px-3 py-2 whitespace-nowrap">{{ $row->tahun }}</td>
                     <td class="px-3 py-2 whitespace-nowrap font-semibold text-green-600">Rp{{ number_format($row->realisasi_csr, 0, ',', '.') }}</td>
                     <td class="px-3 py-2 whitespace-normal break-words max-w-xs">{{ $row->ket == 'nan' ? '-' : $row->ket }}</td>
                     <td class="px-3 py-2">
