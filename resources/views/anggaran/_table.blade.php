@@ -5,6 +5,7 @@
         <th class="px-3 py-2">No</th>
         <th class="px-3 py-2">Pemegang Saham</th>
         <th class="px-3 py-2">Tahun</th>
+        <th class="px-3 py-2">Dana Baru</th>
         <th class="px-3 py-2">Jumlah Anggaran</th>
         <th class="px-3 py-2">Sisa Anggaran</th>
         <th class="px-3 py-2">Aksi</th>
@@ -23,16 +24,20 @@
         </td>
         <td class="px-3 py-2 align-top">{{ $row->tahun }}</td>
 
+        <td class="px-3 py-2 align-top text-sm text-gray-800">
+          Rp{{ number_format(empty($row->sisa_dari_tahun_lalu) ? $row->jumlah_anggaran : 0, 0, ',', '.') }}
+      </td>
+      
         
         
-        
-          <td class="px-3 py-2 align-top text-sm text-gray-800">
-              Rp{{ number_format($row->jumlah_anggaran, 0, ',', '.') }}
-          </td>
-          
-
-          <td class="px-3 py-2 align-top">Rp{{ number_format($row->hitungSisaAnggaranTotal(), 0, ',', '.') }}</td>
-
+        <td class="px-3 py-2 align-top text-sm text-gray-800">
+          Rp{{ number_format($row->total_anggaran_tampilan ?? $row->jumlah_anggaran, 0, ',', '.') }}
+      </td>
+      
+      <td class="px-3 py-2 align-top text-sm text-gray-800">
+          Rp{{ number_format($row->sisa_anggaran_tampilan ?? $row->hitungSisaAnggaranTotal(), 0, ',', '.') }}
+      </td>
+      
           <td class="px-3 py-2 flex space-x-2 items-center">
 
             <!-- Histori Penambahan -->
@@ -73,57 +78,58 @@
             @endif
 
             <!-- Modal Riwayat Penambahan -->
-<div
-x-show="showModalId === 'riwayat-{{ $row->id }}'"
-x-cloak
-class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
-x-transition
->
-<div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
-  <h2 class="text-lg font-semibold text-gray-800 mb-3">📋 Riwayat Penambahan Anggaran</h2>
+            <div
+            x-show="showModalId === 'riwayat-{{ $row->id }}'"
+            x-cloak
+            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+            x-transition
+          >
+            <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative">
+              <h2 class="text-lg font-semibold text-gray-800 mb-4">
+                📋 Informasi Anggaran CSR
+              </h2>
+          
+              <div class="text-sm space-y-3">
+                <div>
+                  <strong>Dana Anggaran Tahun Ini:</strong><br>
+                  Rp{{ number_format($row->jumlah_anggaran, 0, ',', '.') }}
+                </div>
+          
+                <div>
+                  <strong>Sisa dari Tahun Sebelumnya:</strong><br>
+                  Rp{{ number_format(
+                    (!empty($row->sisa_dari_tahun_lalu)) ? $row->jumlah_anggaran :
+                    (\App\Models\AnggaranCsr::where('pemegang_saham', $row->pemegang_saham)
+                        ->where('tahun', '<', $row->tahun)
+                        ->get()
+                        ->sum(fn($item) => $item->hitungSisaAnggaranTotal())
+                    ), 0, ',', '.') }}
+                </div>
+          
+                <div>
+                  <strong>Total Anggaran:</strong><br>
+                  Rp{{ number_format($row->total_anggaran_tampilan, 0, ',', '.') }}
+                </div>
+                <div>
+                  <strong>Realisasi Tahun Ini:</strong><br>
+                  Rp{{ number_format($row->total_anggaran_tampilan - $row->sisa_anggaran_tampilan, 0, ',', '.') }}
+                </div>
+          
+                <div>
+                  <strong>Sisa Anggaran Saat Ini:</strong><br>
+                  Rp{{ number_format($row->sisa_anggaran_tampilan, 0, ',', '.') }}
+                </div>
+              </div>
+          
+              <button @click="showModalId = null"
+                class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-sm">
+                ✕
+              </button>
+            </div>
+          
 
-  @php
-    $riwayat = $row->penambahan()->latest('tanggal_input')->get();
-  @endphp
 
-@php
-$riwayat = $row->penambahan()->latest('tanggal_input')->get();
-
-$isFallback = !empty($row->sisa_dari_tahun_lalu); // ← flag dari controller
-
-if ($isFallback) {
-    $sisa = $row->jumlah_anggaran; // ← karena fallback = jumlah sisa tahun lalu
-    $riwayat = collect([
-        (object)[
-            'tanggal_input' => \Carbon\Carbon::createFromDate(now()->year, 1, 1),
-            'dana_baru' => 0,
-            'sisa_tahun_lalu' => $sisa,
-            'total_anggaran_tahun_ini' => $sisa
-        ]
-    ]);
-}
-@endphp
-
-@if($riwayat->isEmpty())
-<p class="text-sm text-gray-500">Belum ada data penambahan.</p>
-@else
-<ul class="space-y-3 max-h-60 overflow-y-auto">
-  @foreach ($riwayat as $item)
-    <li class="bg-gray-50 border rounded p-3 text-sm">
-      <div><strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($item->tanggal_input)->translatedFormat('d M Y') }}</div>
-      <div><strong>Dana Baru:</strong> Rp{{ number_format($item->dana_baru, 0, ',', '.') }}</div>
-      <div><strong>Sisa Tahun Lalu:</strong> Rp{{ number_format($item->sisa_tahun_lalu, 0, ',', '.') }}</div>
-      <div><strong>Total Setelah Penambahan:</strong> Rp{{ number_format($item->total_anggaran_tahun_ini, 0, ',', '.') }}</div>
-    </li>
-  @endforeach
-</ul>
-@endif
-
-
-  <div class="mt-5 text-right">
-    <button @click="showModalId = null"
-      class="px-4 py-1.5 bg-gray-200 hover:bg-gray-300 rounded text-sm text-gray-700">Tutup</button>
-  </div>
+ 
 </div>
 </div>
 

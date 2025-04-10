@@ -130,29 +130,27 @@
                     class="absolute z-10 mt-2 w-full max-h-60 overflow-auto rounded border border-gray-300 bg-white shadow-sm"
                 >
                 @foreach([
-                    'Provinsi Kepulauan Riau',
                     'Provinsi Riau',
-                    // Kota (urut alfabet)
-                    'Kota Batam',
-                    'Kota Dumai',
                     'Kota Pekanbaru',
-                    'Kota Tanjung Pinang',
-                    // Kabupaten (urut alfabet)
-                    'Kab. Bengkalis',
-                    'Kab. Bintan',
-                    'Kab. Indragiri Hilir',
-                    'Kab. Indragiri Hulu',
                     'Kab. Kampar',
-                    'Kab. Karimun',
-                    'Kab. Kepulauan Anambas',
-                    'Kab. Kuansing',
-                    'Kab. Lingga',
-                    'Kab. Meranti',
-                    'Kab. Natuna',
+                    'Kab. Bengkalis',
+                    'Kab. Indragiri Hulu',
+                    'Kab. Indragiri Hilir',
+                    'Kab. Siak',
                     'Kab. Pelalawan',
-                    'Kab. Rokan Hilir',
+                    'Kab. Kuansing',
                     'Kab. Rokan Hulu',
-                    'Kab. Siak'
+                    'Kab. Rokan Hilir',
+                    'Kota Dumai',
+                    'Kab. Meranti',
+                    'Provinsi Kepulauan Riau',
+                    'Kab. Bintan',
+                    'Kab. Karimun',
+                    'Kab. Natuna',
+                    'Kota Batam',
+                    'Kota Tanjung Pinang',
+                    'Kab. Lingga',
+                    'Kab. Kepulauan Anambas'
                 ] as $ps)
                     <a href="#"
                        @click.prevent="selected = '{{ $ps }}'; open = false"
@@ -173,7 +171,7 @@
         <div>
             <label for="tahun" class="block text-sm font-semibold text-gray-700 mb-1">Tahun</label>
             <input type="number" name="tahun" id="tahun" required
-                placeholder="Contoh: 2025"
+                placeholder="Contoh: 2025"  value="2016"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition">
         </div>
 

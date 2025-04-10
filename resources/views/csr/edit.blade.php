@@ -228,7 +228,7 @@ $defaultTahun = $isEdit ? $csr->tahun : '';
              class="absolute z-10 mt-2 w-full max-h-60 overflow-auto rounded border bg-white shadow-sm">
             @foreach([
                 'Pendidikan','Keagamaan','Kesejahteraan Sosial','Penghargaan','Olahraga','Seni & Budaya',
-                'Kewirausahaan','Dukungan Kegiatan Pemerintah','Lingkungan','Kesehatan','Bencana Alam','Sosial'
+                'Kewirausahaan','Dukungan Kegiatan Pemerintah','Lingkungan','Kesehatan','Bencana Alam','Sosial', 'Lainnya'
             ] as $bidang)
                 <a href="#" @click.prevent="selectedBidang = '{{ $bidang }}'; open = false"
                    class="block px-3 py-2 text-sm hover:bg-gray-50">
