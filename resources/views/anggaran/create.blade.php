@@ -129,18 +129,39 @@
                     role="menu"
                     class="absolute z-10 mt-2 w-full max-h-60 overflow-auto rounded border border-gray-300 bg-white shadow-sm"
                 >
-                    @foreach([
-                        'Kab. Kepulauan Anambas','Kab. Indragiri Hulu','Kota Batam','Kab. Indragiri Hilir','Provinsi Riau','Kab. Kampar','Kab. Bintan',
-                        'Kab. Bengkalis','Kab. Rokan Hilir','Kab. Meranti','Kab. Natuna','Kab. Siak','Kab. Pelalawan','Kota Dumai','Kota Pekanbaru',
-                        'Provinsi Kepulauan Riau','Kab. Rokan Hulu','Kab. Lingga','Kab. Karimun','Kota Tanjung Pinang','Kab. Kuansing'
-                    ] as $ps)
-                        <a href="#"
-                           @click.prevent="selected = '{{ $ps }}'; open = false"
-                           class="block px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
-                           role="menuitem">
-                            {{ $ps }}
-                        </a>
-                    @endforeach
+                @foreach([
+                    'Provinsi Kepulauan Riau',
+                    'Provinsi Riau',
+                    // Kota (urut alfabet)
+                    'Kota Batam',
+                    'Kota Dumai',
+                    'Kota Pekanbaru',
+                    'Kota Tanjung Pinang',
+                    // Kabupaten (urut alfabet)
+                    'Kab. Bengkalis',
+                    'Kab. Bintan',
+                    'Kab. Indragiri Hilir',
+                    'Kab. Indragiri Hulu',
+                    'Kab. Kampar',
+                    'Kab. Karimun',
+                    'Kab. Kepulauan Anambas',
+                    'Kab. Kuansing',
+                    'Kab. Lingga',
+                    'Kab. Meranti',
+                    'Kab. Natuna',
+                    'Kab. Pelalawan',
+                    'Kab. Rokan Hilir',
+                    'Kab. Rokan Hulu',
+                    'Kab. Siak'
+                ] as $ps)
+                    <a href="#"
+                       @click.prevent="selected = '{{ $ps }}'; open = false"
+                       class="block px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                       role="menuitem">
+                        {{ $ps }}
+                    </a>
+                @endforeach
+                
                 </div>
             </div>
         </div>
