@@ -81,6 +81,7 @@ public function penambahan()
 
 public function getDetailRiwayatCsr($filterBidangKegiatan = null)
 {
+    // Ambil semua realisasi CSR per bulan
     $realisasi = Csr::where('pemegang_saham', $this->pemegang_saham)
         ->where('tahun', $this->tahun);
 
@@ -90,44 +91,45 @@ public function getDetailRiwayatCsr($filterBidangKegiatan = null)
 
     $realisasi = $realisasi->orderBy('bulan')->get()->groupBy('bulan');
 
-    $penambahan = $this->penambahan;
-    $sisaTahunLalu = $penambahan->sisa_tahun_lalu ?? 0;
-    $penambahanTahunIni = $penambahan->dana_baru ?? 0;
-    $bulanPenambahan = $penambahan ? \Carbon\Carbon::parse($penambahan->tanggal_input)->month : null;
-    
-    if (!$penambahan) {
-        if (property_exists($this, 'adalah_fallback') && $this->adalah_fallback) {
-            // Jika data ini fallback dan tidak ada penambahan, artinya dari tahun lalu
-            $sisaTahunLalu = $this->jumlah_anggaran;
-        } else {
-            // Jika bukan fallback, maka itu data murni tahun ini
-            $penambahanTahunIni = $this->jumlah_anggaran;
-        }
+    // Hitung sisa tahun lalu
+    $sisaTahunLalu = AnggaranCsr::where('pemegang_saham', $this->pemegang_saham)
+        ->where('tahun', '<', $this->tahun)
+        ->get()
+        ->sum(fn($item) => $item->hitungSisaAnggaranTotal());
+
+    // Jika data ini fallback (sisa dari tahun lalu), maka jangan hitung sisa lagi (hindari double count)
+    if (!empty($this->sisa_dari_tahun_lalu)) {
+        $totalAnggaran = $this->jumlah_anggaran;
+        $sisaTahunLalu = $this->jumlah_anggaran;
+        $penambahanTahunIni = 0;
+    } else {
+        $totalAnggaran = $this->jumlah_anggaran + $sisaTahunLalu;
+        $penambahanTahunIni = $this->jumlah_anggaran;
     }
-    
 
     $dataBulan = [];
-    $saldo = $sisaTahunLalu + $penambahanTahunIni;
     $totalRealisasi = 0;
 
     for ($bulan = 1; $bulan <= 12; $bulan++) {
-        $realisasiBulanIni = isset($realisasi[$bulan]) ? $realisasi[$bulan]->sum('realisasi_csr') : 0;
+        $realisasiBulan = isset($realisasi[$bulan]) ? $realisasi[$bulan]->sum('realisasi_csr') : 0;
 
         $dataBulan[$bulan] = [
             'bulan' => $bulan,
-            'realisasi' => $realisasiBulanIni,
+            'realisasi' => $realisasiBulan,
         ];
 
-        $totalRealisasi += $realisasiBulanIni;
+        $totalRealisasi += $realisasiBulan;
     }
 
     return [
         'sisa_tahun_lalu' => $sisaTahunLalu,
         'penambahan_tahun_ini' => $penambahanTahunIni,
         'bulan_realisasi' => $dataBulan,
-        'sisa_akhir_tahun' => max($saldo - $totalRealisasi, 0),
+        'sisa_akhir_tahun' => max($totalAnggaran - $totalRealisasi, 0),
     ];
 }
+
+
 
 
 
