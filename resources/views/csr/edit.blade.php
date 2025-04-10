@@ -74,9 +74,23 @@
 </div>
 @endif
 
+@php
+$isEdit = isset($csr);
+$defaultPemegangSaham = $isEdit ? $csr->pemegang_saham : '';
+@endphp            
+@php
+$isEdit = isset($csr);
+$defaultTahun = $isEdit ? $csr->tahun : '';
+@endphp
 
-
-<div class="max-w-5xl mx-auto mt-12 bg-white shadow-lg rounded-2xl border border-gray-200 p-8" x-data="formCSR()">
+<div class="max-w-5xl mx-auto mt-12 bg-white shadow-lg rounded-2xl border border-gray-200 p-8"
+     x-data="formCSR()"
+     x-init="
+        pemegang_saham = '{{ $defaultPemegangSaham }}';
+        tahun = '{{ $defaultTahun }}';
+        selectedTahun = '{{ $defaultTahun }}';
+        cekSisaAnggaran();
+     ">
     <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">➕ Edit Program CSR</h2>
 
     <div class="grid md:grid-cols-3 gap-6">
@@ -90,10 +104,7 @@
                 <input type="text" name="nama_program" class="w-full px-4 py-2 border rounded-lg" value="{{ old('nama_program', $csr->nama_program ?? '') }}" required>
             </div>
 
-            @php
-                $isEdit = isset($csr);
-                $defaultPemegangSaham = $isEdit ? $csr->pemegang_saham : '';
-            @endphp
+
 
 
 
@@ -151,10 +162,7 @@
 
             </div>
 
-            @php
-            $isEdit = isset($csr);
-            $defaultTahun = $isEdit ? $csr->tahun : '';
-        @endphp
+
         
         <div>
             <div x-data="{ open: false, selectedTahun: '{{ $defaultTahun }}' }" class="relative">
@@ -174,7 +182,12 @@
                         <div x-show="open" @click.away="open = false"
                              class="absolute z-10 mt-2 w-full max-h-60 overflow-auto rounded border bg-white shadow-sm">
                             @foreach($availableYears as $year)
-                                <a href="#" @click.prevent="selectedTahun = '{{ $year }}'; tahun = '{{ $year }}'; cekSisaAnggaran(); open = false"
+                                <a href="#" @click.prevent="
+                                selectedTahun = '{{ $year }}';
+                                tahun = '{{ $year }}';
+                                cekSisaAnggaran();
+                                open = false;
+                            "
                                    class="block px-3 py-2 text-sm hover:bg-gray-50">
                                     {{ $year }}
                                 </a>
@@ -387,19 +400,19 @@ function formCSR() {
             return 'Rp ' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         },
         cekSisaAnggaran() {
-    console.log('Cek anggaran dipanggil:', this.pemegang_saham, this.tahun);
-    fetch(`{{ route('csr.sisa-anggaran') }}?pemegang_saham=${this.pemegang_saham}&tahun=${this.tahun}`)
-        .then(res => res.json())
-        .then(data => {
-            console.log('Data diterima:', data); // <== ini penting!
-            this.sisaAnggaran = data.sisa;
-            this.isFallback = data.fallback ?? false;
-        })
-        .catch(err => {
-            console.error('Gagal fetch:', err);
-            this.sisaAnggaran = null;
-            this.isFallback = false;
-        });
+    if (this.pemegang_saham && this.tahun) {
+        fetch(`{{ route('csr.sisa-anggaran') }}?pemegang_saham=${this.pemegang_saham}&tahun=${this.tahun}`)
+            .then(res => res.json())
+            .then(data => {
+                this.sisaAnggaran = data.sisa;
+                this.isFallback = data.fallback ?? false;
+            })
+            .catch(err => {
+                console.error(err);
+                this.sisaAnggaran = null;
+                this.isFallback = false;
+            });
+    }
 }
 
     }
