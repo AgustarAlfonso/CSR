@@ -526,55 +526,149 @@ public function riwayatCsr(Request $request)
     $pemegangSaham = $request->input('pemegang_saham', 'semua');
 
     $semuaPemegangSaham = \App\Models\AnggaranCsr::select('pemegang_saham')->distinct()->pluck('pemegang_saham');
-    $riwayatPerSaham = [];
+    $riwayatPerSaham = $this->ambilRiwayatCsr($tahun, $pemegangSaham);
 
-    if ($pemegangSaham === 'semua') {
-        // Inisialisasi akumulasi data seluruh saham
-        $gabungan = [
-            'pemegang_saham' => 'Gabungan Semua',
-            'riwayat' => array_fill(1, 12, [
-                'bulan' => null,
-                'sisa_anggaran_awal' => 0,
-                'realisasi' => 0,
-                'penambahan_anggaran' => 0,
-                'sisa_anggaran_akhir' => 0,
-            ]),
-        ];
-
-        $anggarans = \App\Models\AnggaranCsr::with('penambahan')->where('tahun', $tahun)->get();
-
-        foreach ($anggarans as $anggaran) {
-            $riwayat = $anggaran->getRiwayatPerBulan();
-            foreach ($riwayat as $bulan => $data) {
-                $gabungan['riwayat'][$bulan]['bulan'] = $bulan;
-                $gabungan['riwayat'][$bulan]['sisa_anggaran_awal'] += $data['sisa_anggaran_awal'];
-                $gabungan['riwayat'][$bulan]['realisasi'] += $data['realisasi'];
-                $gabungan['riwayat'][$bulan]['penambahan_anggaran'] += $data['penambahan_anggaran'];
-                $gabungan['riwayat'][$bulan]['sisa_anggaran_akhir'] += $data['sisa_anggaran_akhir'];
-            }
-        }
-
-        $riwayatPerSaham[] = $gabungan;
-    } else {
-        $anggarans = \App\Models\AnggaranCsr::with('penambahan')
-            ->where('tahun', $tahun)
-            ->where('pemegang_saham', $pemegangSaham)
-            ->get();
-
-        foreach ($anggarans as $anggaran) {
-            $riwayatPerSaham[] = [
-                'pemegang_saham' => $anggaran->pemegang_saham,
-                'riwayat' => $anggaran->getRiwayatPerBulan()
-            ];
-        }
-    }
-    $daftarTahun = \App\Models\AnggaranCsr::select('tahun')
-    ->distinct()
-    ->orderByDesc('tahun')
-    ->pluck('tahun');
+    $daftarTahun = \App\Models\AnggaranCsr::select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun');
 
     return view('csr.riwayat', compact('riwayatPerSaham', 'tahun', 'pemegangSaham', 'semuaPemegangSaham', 'daftarTahun'));
 }
+
+public function riwayatCsrAjax(Request $request)
+{
+    $tahun = $request->input('tahun', date('Y'));
+    $pemegangSaham = $request->input('pemegang_saham', 'semua');
+
+    $riwayatPerSaham = $this->ambilRiwayatCsr($tahun, $pemegangSaham);
+
+    return view('csr.partials.riwayat-list', compact('riwayatPerSaham'))->render();
+}
+
+protected function ambilRiwayatCsr($tahun, $pemegangSaham)
+{
+    // === MODE: SEMUA PEMEGANG SAHAM ===
+    if ($pemegangSaham === 'semua') {
+        $dataTahunIni = \App\Models\AnggaranCsr::with('penambahan')
+            ->where('tahun', $tahun)
+            ->get();
+
+        $semuaSaham = \App\Models\AnggaranCsr::select('pemegang_saham')->distinct()->pluck('pemegang_saham')->toArray();
+        $sudahAda = $dataTahunIni->pluck('pemegang_saham')->toArray();
+        $belumAda = array_diff($semuaSaham, $sudahAda);
+
+        $fallbacks = collect();
+        if (!empty($belumAda)) {
+            $fallbacks = \App\Models\AnggaranCsr::with('penambahan')
+                ->where('tahun', $tahun - 1)
+                ->whereIn('pemegang_saham', $belumAda)
+                ->get()
+                ->filter(fn($item) => $item->hitungSisaAnggaranTotal() > 0)
+                ->map(function ($item) use ($tahun) {
+                    $clone = clone $item;
+                    $clone->tahun = $tahun;
+                    $clone->jumlah_anggaran = $item->hitungSisaAnggaranTotal();
+                    $clone->is_fallback = true;
+                    return $clone;
+                });
+        }
+
+        $gabungan = $dataTahunIni->map(function ($item) {
+            $item->is_fallback = false;
+            return $item;
+        })->concat($fallbacks);
+
+        // Fallback penuh kalau kosong semua
+        if ($gabungan->isEmpty()) {
+            $gabungan = \App\Models\AnggaranCsr::with('penambahan')
+                ->where('tahun', $tahun - 1)
+                ->get()
+                ->filter(fn($item) => $item->hitungSisaAnggaranTotal() > 0)
+                ->map(function ($item) use ($tahun) {
+                    $clone = clone $item;
+                    $clone->tahun = $tahun;
+                    $clone->jumlah_anggaran = $item->hitungSisaAnggaranTotal();
+                    $clone->is_fallback = true;
+                    return $clone;
+                });
+        }
+
+        // === Proses Agregasi Data Gabungan ===
+        $totalSisaTahunLalu = 0;
+        $totalPenambahan = 0;
+        $totalRealisasiBulanan = array_fill(1, 12, 0);
+
+        foreach ($gabungan as $item) {
+            $detail = $item->getDetailRiwayatCsr();
+
+            // Jika fallback dan tidak punya record penambahan, masukkan ke sisa tahun lalu
+            if ($item->is_fallback && !$item->penambahan) {
+                $totalSisaTahunLalu += $item->jumlah_anggaran;
+            } else {
+                $totalSisaTahunLalu += $detail['sisa_tahun_lalu'];
+                $totalPenambahan += $detail['penambahan_tahun_ini'];
+            }
+
+            foreach ($detail['bulan_realisasi'] as $bulan => $data) {
+                $totalRealisasiBulanan[$bulan] += $data['realisasi'];
+            }
+        }
+
+        $totalRealisasi = array_sum($totalRealisasiBulanan);
+        $sisaAkhirTahun = max(($totalSisaTahunLalu + $totalPenambahan) - $totalRealisasi, 0);
+
+        $dataBulan = [];
+        for ($bulan = 1; $bulan <= 12; $bulan++) {
+            $dataBulan[$bulan] = [
+                'bulan' => $bulan,
+                'realisasi' => $totalRealisasiBulanan[$bulan],
+            ];
+        }
+
+        return [[
+            'pemegang_saham' => 'Semua Pemegang Saham',
+            'detail' => [
+                'sisa_tahun_lalu' => $totalSisaTahunLalu,
+                'penambahan_tahun_ini' => $totalPenambahan,
+                'bulan_realisasi' => $dataBulan,
+                'sisa_akhir_tahun' => $sisaAkhirTahun,
+            ]
+        ]];
+    }
+
+    // === MODE: PEMEGANG SAHAM SPESIFIK ===
+    $anggarans = \App\Models\AnggaranCsr::with('penambahan')
+        ->where('tahun', $tahun)
+        ->where('pemegang_saham', $pemegangSaham)
+        ->get();
+
+    if ($anggarans->isEmpty()) {
+        $anggarans = \App\Models\AnggaranCsr::with('penambahan')
+            ->where('tahun', $tahun - 1)
+            ->where('pemegang_saham', $pemegangSaham)
+            ->get()
+            ->filter(fn($item) => $item->hitungSisaAnggaranTotal() > 0)
+            ->map(function ($item) use ($tahun) {
+                $clone = clone $item;
+                $clone->tahun = $tahun;
+                $clone->jumlah_anggaran = $item->hitungSisaAnggaranTotal();
+                return $clone;
+            });
+    }
+
+    $riwayatPerSaham = [];
+    foreach ($anggarans as $anggaran) {
+        $riwayatPerSaham[] = [
+            'pemegang_saham' => $anggaran->pemegang_saham,
+            'detail' => $anggaran->getDetailRiwayatCsr()
+        ];
+    }
+
+    return $riwayatPerSaham;
+}
+
+
+
+
+
 
 
 

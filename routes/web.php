@@ -21,6 +21,8 @@ Route::get('/sisa-anggaran', [\App\Http\Controllers\CsrController::class, 'getSi
 Route::post('/csr/chart/bidang-kegiatan', [CsrController::class, 'chartByBidangKegiatan'])->name('csr.chart.bidang_kegiatan');
 
 route::get('/csr/riwayat', [CsrController::class, 'riwayatCsr'])->name('csr.riwayat');
+Route::get('/csr/riwayat/ajax', [CsrController::class, 'riwayatCsrAjax'])->name('csr.riwayat.ajax');
+
 
 
 Route::get('/anggaran', [AnggaranController::class, 'index'])->name('anggaran.index');
