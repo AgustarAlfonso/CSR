@@ -520,6 +520,62 @@ public function getSisaAnggaran(Request $request)
 
 
 
+public function riwayatCsr(Request $request)
+{
+    $tahun = $request->input('tahun', date('Y'));
+    $pemegangSaham = $request->input('pemegang_saham', 'semua');
+
+    $semuaPemegangSaham = \App\Models\AnggaranCsr::select('pemegang_saham')->distinct()->pluck('pemegang_saham');
+    $riwayatPerSaham = [];
+
+    if ($pemegangSaham === 'semua') {
+        // Inisialisasi akumulasi data seluruh saham
+        $gabungan = [
+            'pemegang_saham' => 'Gabungan Semua',
+            'riwayat' => array_fill(1, 12, [
+                'bulan' => null,
+                'sisa_anggaran_awal' => 0,
+                'realisasi' => 0,
+                'penambahan_anggaran' => 0,
+                'sisa_anggaran_akhir' => 0,
+            ]),
+        ];
+
+        $anggarans = \App\Models\AnggaranCsr::with('penambahan')->where('tahun', $tahun)->get();
+
+        foreach ($anggarans as $anggaran) {
+            $riwayat = $anggaran->getRiwayatPerBulan();
+            foreach ($riwayat as $bulan => $data) {
+                $gabungan['riwayat'][$bulan]['bulan'] = $bulan;
+                $gabungan['riwayat'][$bulan]['sisa_anggaran_awal'] += $data['sisa_anggaran_awal'];
+                $gabungan['riwayat'][$bulan]['realisasi'] += $data['realisasi'];
+                $gabungan['riwayat'][$bulan]['penambahan_anggaran'] += $data['penambahan_anggaran'];
+                $gabungan['riwayat'][$bulan]['sisa_anggaran_akhir'] += $data['sisa_anggaran_akhir'];
+            }
+        }
+
+        $riwayatPerSaham[] = $gabungan;
+    } else {
+        $anggarans = \App\Models\AnggaranCsr::with('penambahan')
+            ->where('tahun', $tahun)
+            ->where('pemegang_saham', $pemegangSaham)
+            ->get();
+
+        foreach ($anggarans as $anggaran) {
+            $riwayatPerSaham[] = [
+                'pemegang_saham' => $anggaran->pemegang_saham,
+                'riwayat' => $anggaran->getRiwayatPerBulan()
+            ];
+        }
+    }
+    $daftarTahun = \App\Models\AnggaranCsr::select('tahun')
+    ->distinct()
+    ->orderByDesc('tahun')
+    ->pluck('tahun');
+
+    return view('csr.riwayat', compact('riwayatPerSaham', 'tahun', 'pemegangSaham', 'semuaPemegangSaham', 'daftarTahun'));
+}
+
 
 
 }

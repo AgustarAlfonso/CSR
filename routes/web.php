@@ -20,6 +20,8 @@ Route::delete('csr/{csr}', [\App\Http\Controllers\CsrController::class, 'destroy
 Route::get('/sisa-anggaran', [\App\Http\Controllers\CsrController::class, 'getSisaAnggaran'])->name('csr.sisa-anggaran');
 Route::post('/csr/chart/bidang-kegiatan', [CsrController::class, 'chartByBidangKegiatan'])->name('csr.chart.bidang_kegiatan');
 
+route::get('/csr/riwayat', [CsrController::class, 'riwayatCsr'])->name('csr.riwayat');
+
 
 Route::get('/anggaran', [AnggaranController::class, 'index'])->name('anggaran.index');
 Route::resource('anggaran', AnggaranController::class);
