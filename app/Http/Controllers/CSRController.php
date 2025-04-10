@@ -333,11 +333,127 @@ class CsrController extends Controller
     
 
     
-    public function edit($id)
+public function edit(Request $request, \App\Models\Csr $csr)
 {
-    $csr = CSR::findOrFail($id);
-    return view('csr.edit', compact('csr'));
+    $availableYears = \App\Models\AnggaranCsr::select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun');
+
+    $pemegangSaham = $csr->pemegang_saham;
+    $tahun = $csr->tahun;
+    $sisaAnggaran = null;
+    $isFallback = false;
+
+    // Cek apakah anggaran tahun ini ada
+    $anggaran = \App\Models\AnggaranCsr::where('pemegang_saham', $pemegangSaham)
+                ->where('tahun', $tahun)
+                ->first();
+
+    if (!$anggaran && $tahun == now()->year) {
+        // fallback ke tahun sebelumnya
+        $anggaranSebelumnya = \App\Models\AnggaranCsr::where('pemegang_saham', $pemegangSaham)
+            ->where('tahun', $tahun - 1)
+            ->first();
+
+        if ($anggaranSebelumnya) {
+            $sisa = $anggaranSebelumnya->hitungSisaAnggaranTotal($csr->id); // lewatkan ID untuk pengecualian
+            if ($sisa > 0) {
+                $sisaAnggaran = $sisa;
+                $isFallback = true;
+            }
+        }
+    } elseif ($anggaran) {
+        $sisaAnggaran = $anggaran->hitungSisaAnggaranTotal($csr->id); // lewatkan ID untuk pengecualian
+    }
+
+    return view('csr.edit', compact('csr', 'availableYears', 'sisaAnggaran', 'pemegangSaham', 'tahun', 'isFallback'));
 }
+
+
+public function update(Request $request, \App\Models\Csr $csr)
+{
+    // Bersihkan angka dari titik ribuan
+    $request->merge([
+        'realisasi_csr' => str_replace('.', '', $request->realisasi_csr),
+    ]);
+
+    // Validasi input
+    $request->validate([
+        'nama_program' => 'required|string|max:255',
+        'pemegang_saham' => 'required|string',
+        'tahun' => 'required|integer',
+        'bulan' => 'required|integer|min:1|max:12',
+        'bidang_kegiatan' => 'required|string',
+        'realisasi_csr' => 'required|numeric|min:0',
+        'ket' => 'nullable|string',
+    ], [
+        'nama_program.required' => 'Nama program wajib diisi.',
+        'nama_program.max' => 'Nama program tidak boleh lebih dari 255 karakter.',
+        'pemegang_saham.required' => 'Pemegang saham wajib dipilih.',
+        'tahun.required' => 'Tahun wajib diisi.',
+        'tahun.integer' => 'Tahun harus berupa angka.',
+        'bulan.required' => 'Bulan wajib dipilih.',
+        'bulan.integer' => 'Bulan harus berupa angka.',
+        'bulan.min' => 'Bulan tidak valid (minimal Januari).',
+        'bulan.max' => 'Bulan tidak valid (maksimal Desember).',
+        'bidang_kegiatan.required' => 'Bidang kegiatan wajib diisi.',
+        'realisasi_csr.required' => 'Realisasi CSR wajib diisi.',
+        'realisasi_csr.numeric' => 'Realisasi CSR harus berupa angka.',
+        'realisasi_csr.min' => 'Realisasi CSR tidak boleh negatif.',
+        'ket.string' => 'Keterangan harus berupa teks.',
+    ]);
+
+    $pemegangSaham = $request->pemegang_saham;
+    $tahun = $request->tahun;
+    $realisasiBaru = (float) $request->realisasi_csr;
+
+    // Ambil anggaran tahun ini, atau fallback ke tahun sebelumnya
+    $anggaran = \App\Models\AnggaranCsr::where('pemegang_saham', $pemegangSaham)
+                ->where('tahun', $tahun)
+                ->first();
+
+    $tahunFallback = $tahun;
+    if (!$anggaran) {
+        $anggaran = \App\Models\AnggaranCsr::where('pemegang_saham', $pemegangSaham)
+                    ->where('tahun', $tahun - 1)
+                    ->first();
+        $tahunFallback = $tahun - 1;
+
+        if (!$anggaran) {
+            return back()->withErrors(['pemegang_saham' => 'Tidak ada anggaran ditemukan, termasuk dari tahun sebelumnya.'])->withInput();
+        }
+    }
+
+    $jumlahAnggaran = (float) $anggaran->jumlah_anggaran;
+
+    // Hitung realisasi tahun ini dikurangi realisasi lama
+    $totalRealisasi = \App\Models\Csr::where('pemegang_saham', $pemegangSaham)
+                        ->where('tahun', $tahun)
+                        ->where('id', '!=', $csr->id)
+                        ->sum('realisasi_csr');
+
+    $totalRealisasiSetelahInput = $totalRealisasi + $realisasiBaru;
+    $sisaSetelahInput = $jumlahAnggaran - $totalRealisasiSetelahInput;
+
+    if ($totalRealisasiSetelahInput > $jumlahAnggaran) {
+        return back()
+            ->with('csr_error', 'Realisasi melebihi anggaran yang tersedia (termasuk dari tahun sebelumnya).')
+            ->with('request_data', $request->all())
+            ->withInput();
+    }
+
+    // Update data
+    $csr->update([
+        'nama_program' => $request->nama_program,
+        'pemegang_saham' => $pemegangSaham,
+        'tahun' => $tahun,
+        'bulan' => $request->bulan,
+        'bidang_kegiatan' => $request->bidang_kegiatan,
+        'realisasi_csr' => $realisasiBaru,
+        'ket' => $request->ket,
+    ]);
+
+    return redirect()->route('dashboard')->with('success', 'Program CSR berhasil diperbarui.');
+}
+
 
 public function destroy($id)
 {

@@ -15,6 +15,7 @@ Route::get('/hasil-filter', [CsrController::class, 'hasilFilter'])->name('csr.ha
 Route::get('/csr/create', [\App\Http\Controllers\CsrController::class, 'create'])->name('csr.create');
 Route::post('/csr/store', [\App\Http\Controllers\CsrController::class, 'store'])->name('csr.store');
 Route::get('csr/{csr}/edit', [\App\Http\Controllers\CsrController::class, 'edit'])->name('csr.edit');
+Route::post('/csr/{csr}', [CsrController::class, 'update'])->name('csr.update');
 Route::delete('csr/{csr}', [\App\Http\Controllers\CsrController::class, 'destroy'])->name('csr.destroy');
 Route::get('/sisa-anggaran', [\App\Http\Controllers\CsrController::class, 'getSisaAnggaran'])->name('csr.sisa-anggaran');
 Route::post('/csr/chart/bidang-kegiatan', [CsrController::class, 'chartByBidangKegiatan'])->name('csr.chart.bidang_kegiatan');
