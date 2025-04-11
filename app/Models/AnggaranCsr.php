@@ -79,15 +79,12 @@ public function penambahan()
 }
 
 
-public function getDetailRiwayatCsr($filterBidangKegiatan = null)
+public function getDetailRiwayatCsr()
 {
     // Ambil semua realisasi CSR per bulan
     $realisasi = Csr::where('pemegang_saham', $this->pemegang_saham)
         ->where('tahun', $this->tahun);
 
-    if ($filterBidangKegiatan) {
-        $realisasi->whereIn('bidang_kegiatan', (array) $filterBidangKegiatan);
-    }
 
     $realisasi = $realisasi->orderBy('bulan')->get()->groupBy('bulan');
 

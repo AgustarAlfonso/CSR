@@ -92,7 +92,7 @@ class AnggaranController extends Controller
         });
         
     
-        $totalAnggaran = $anggaran->sum('jumlah_anggaran');
+        $totalAnggaran = $anggaran->sum('total_anggaran_tampilan');
     
         // Daftar tahun termasuk tahun sekarang jika belum ada di DB
         $daftarTahun = AnggaranCsr::select('tahun')->distinct()->pluck('tahun');
