@@ -315,7 +315,10 @@ class CsrController extends Controller
         'ket' => $request->ket,
     ]);
 
-    return redirect()->route('dashboard')->with('success', 'Program CSR berhasil ditambahkan.');
+    return redirect()->route('csr.hasil_filter', [
+        'pemegang_saham' => $pemegangSaham,
+        'tahun' => $tahun,
+    ])->with('success', 'Program CSR berhasil ditambahkan dan difilter berdasarkan input.');
 }
 
     
@@ -394,37 +397,32 @@ public function update(Request $request, \App\Models\Csr $csr)
     $tahun = $request->tahun;
     $realisasiBaru = (float) $request->realisasi_csr;
 
-    // Ambil anggaran tahun ini, atau fallback ke tahun sebelumnya
+    // Coba cari anggaran tahun ini
     $anggaran = \App\Models\AnggaranCsr::where('pemegang_saham', $pemegangSaham)
                 ->where('tahun', $tahun)
                 ->first();
 
     $tahunFallback = $tahun;
     if (!$anggaran) {
+        // Ambil tahun sebelumnya sebagai fallback
         $anggaran = \App\Models\AnggaranCsr::where('pemegang_saham', $pemegangSaham)
                     ->where('tahun', $tahun - 1)
                     ->first();
-        $tahunFallback = $tahun - 1;
 
+        $tahunFallback = $tahun - 1;
         if (!$anggaran) {
             return back()->withErrors(['pemegang_saham' => 'Tidak ada anggaran ditemukan, termasuk dari tahun sebelumnya.'])->withInput();
         }
     }
 
-    $jumlahAnggaran = (float) $anggaran->jumlah_anggaran;
+    $sisaAnggaran = $anggaran->getSisaAnggaranTampilan();
 
-    // Hitung realisasi tahun ini dikurangi realisasi lama
-    $totalRealisasi = \App\Models\Csr::where('pemegang_saham', $pemegangSaham)
-                        ->where('tahun', $tahun)
-                        ->where('id', '!=', $csr->id)
-                        ->sum('realisasi_csr');
+    // Tambahkan kembali realisasi lama, lalu bandingkan dengan yang baru
+    $sisaAnggaran += $csr->realisasi_csr;
 
-    $totalRealisasiSetelahInput = $totalRealisasi + $realisasiBaru;
-    $sisaSetelahInput = $jumlahAnggaran - $totalRealisasiSetelahInput;
-
-    if ($totalRealisasiSetelahInput > $jumlahAnggaran) {
+    if ($realisasiBaru > $sisaAnggaran) {
         return back()
-            ->with('csr_error', 'Realisasi melebihi anggaran yang tersedia (termasuk dari tahun sebelumnya).')
+            ->with('csr_error', 'Realisasi melebihi sisa anggaran yang tersedia (termasuk fallback jika ada).')
             ->with('request_data', $request->all())
             ->withInput();
     }
@@ -440,8 +438,12 @@ public function update(Request $request, \App\Models\Csr $csr)
         'ket' => $request->ket,
     ]);
 
-    return redirect()->route('dashboard')->with('success', 'Program CSR berhasil diperbarui.');
+    return redirect()->route('csr.hasil_filter', [
+        'pemegang_saham' => $pemegangSaham,
+        'tahun' => $tahun,
+    ])->with('success', 'Program CSR berhasil ditambahkan dan difilter berdasarkan input.');
 }
+
 
 
 public function destroy($id)
