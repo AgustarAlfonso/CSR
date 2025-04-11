@@ -28,8 +28,12 @@ class AnggaranController extends Controller
         $fallback = false;
     
         // Ambil semua pemegang saham
-        $semuaPemegangSaham = AnggaranCsr::select('pemegang_saham')->distinct()->pluck('pemegang_saham')->toArray();
-    
+        $semuaPemegangSahamQuery = AnggaranCsr::select('pemegang_saham')->distinct();
+        if ($request->filled('pemegang_saham')) {
+            $semuaPemegangSahamQuery->whereIn('pemegang_saham', $request->pemegang_saham);
+        }
+        $semuaPemegangSaham = $semuaPemegangSahamQuery->pluck('pemegang_saham')->toArray();
+            
         // Pemegang saham yang sudah punya data tahun ini
         $sudahAda = $anggaranTahunIni->pluck('pemegang_saham')->toArray();
     

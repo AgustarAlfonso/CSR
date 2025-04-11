@@ -85,11 +85,6 @@ public function getTotalAnggaranTampilan()
         return $this->total_anggaran_tampilan;
     }
 
-    // Cek apakah data ini hasil fallback (dari tahun sebelumnya)
-    if (!empty($this->sisa_dari_tahun_lalu)) {
-        return $this->jumlah_anggaran;
-    }
-
     $tahunSebelumnya = self::where('pemegang_saham', $this->pemegang_saham)
         ->where('tahun', $this->tahun - 1)
         ->first();
@@ -98,25 +93,30 @@ public function getTotalAnggaranTampilan()
 
     if ($tahunSebelumnya) {
         $jumlahAnggaranTahunLalu = $tahunSebelumnya->jumlah_anggaran;
-        $totalAnggaranTahunLalu = $tahunSebelumnya->getTotalAnggaranTampilan(); // termasuk sisa dari 2 tahun lalu
+        $totalAnggaranTahunLalu = $tahunSebelumnya->getTotalAnggaranTampilan();
         $realisasiTahunLalu = \App\Models\Csr::where('pemegang_saham', $this->pemegang_saham)
             ->where('tahun', $this->tahun - 1)
             ->sum('realisasi_csr');
 
-        // Jika realisasi melebihi jumlah anggaran tahun lalu, kurangi sisa dari tahun sebelumnya
         if ($realisasiTahunLalu > $jumlahAnggaranTahunLalu) {
             $kelebihan = $realisasiTahunLalu - $jumlahAnggaranTahunLalu;
-            $sisaSebenarnya = max($totalAnggaranTahunLalu - $jumlahAnggaranTahunLalu, 0); // Hanya sisa dari tahun sebelumnya
+            $sisaSebenarnya = max($totalAnggaranTahunLalu - $jumlahAnggaranTahunLalu, 0);
 
-            // Kurangi sisa tahun lalu dengan kelebihan realisasi
             $sisaTahunLalu = max($sisaSebenarnya - $kelebihan, 0);
         } else {
             $sisaTahunLalu = $totalAnggaranTahunLalu - $realisasiTahunLalu;
         }
     }
 
+    // Jika fallback, kembalikan sisa tahun lalu sebagai total (jumlah_anggaran = 0)
+    if (!empty($this->sisa_dari_tahun_lalu)) {
+        return $sisaTahunLalu;
+    }
+
     return $this->jumlah_anggaran + $sisaTahunLalu;
 }
+
+
 
 
 public function getSisaAnggaranTampilan()
@@ -177,8 +177,7 @@ public function getDetailRiwayatCsr()
         $penambahanTahunIni = 0;
     } else {
         $totalAnggaran = $this->jumlah_anggaran + $sisaTahunLalu;
-        $penambahanTahunIni = $this->jumlah_anggaran;
-    }
+        $penambahanTahunIni = $this->jumlah_anggaran ?: 0;    }
 
     // Inisialisasi data per bulan
     $dataBulan = [];
