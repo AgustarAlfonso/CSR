@@ -143,8 +143,7 @@ $defaultTahun = $isEdit ? $csr->tahun : '';
             x-show="open"
             @click.away="open = false"
             role="menu"
-            class="absolute z-10 mt-2 w-full max-h-60 overflow-auto rounded border border-gray-300 bg-white shadow-sm"
-        >
+            class="absolute z-10 mt-2 w-full max-h-60 overflow-auto rounded border border-gray-300 bg-white shadow-sm">
             @foreach([
                 'Kab. Kepulauan Anambas','Kab. Indragiri Hulu','Kota Batam','Kab. Indragiri Hilir','Provinsi Riau','Kab. Kampar','Kab. Bintan',
                 'Kab. Bengkalis','Kab. Rokan Hilir','Kab. Meranti','Kab. Natuna','Kab. Siak','Kab. Pelalawan','Kota Dumai','Kota Pekanbaru',
@@ -308,7 +307,7 @@ $defaultTahun = $isEdit ? $csr->tahun : '';
         class="w-full px-4 py-2 border rounded-lg" 
         required
         @blur="realisasi_csr = realisasi_csr"  <!-- untuk reformat setelah user selesai input -->
-    >
+    
     <!-- Hidden input untuk kirim data mentah ke backend -->
     <input type="hidden" name="realisasi_csr" :value="raw">
 </div>

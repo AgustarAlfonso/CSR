@@ -277,12 +277,10 @@
         </form>
 
         <!-- Info Box -->
-<!-- Info Box -->
-<div 
+    <div 
     class="rounded-xl p-5 shadow-sm h-fit border"
     x-show="true"
-    :class="(realisasi_csr && parseInt(realisasi_csr) > sisaAnggaran) ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-gray-50'"
->
+    :class="(realisasi_csr && parseInt(realisasi_csr) > sisaAnggaran) ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-gray-50'">
     <h3 class="text-lg font-semibold mb-2"
         :class="(realisasi_csr && parseInt(realisasi_csr) > sisaAnggaran) ? 'text-red-800' : 'text-gray-800'">
         ℹ️ Info Anggaran
