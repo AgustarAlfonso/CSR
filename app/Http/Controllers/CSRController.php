@@ -36,32 +36,34 @@ class CsrController extends Controller
     
         $anggaranList = $anggaranQuery->get();
     
-        // Cek fallback jika kosong dan tahun filter adalah tahun sekarang
-        if ($anggaranList->isEmpty() && $tahunFilter === $tahunSekarang) {
-            $tahunSebelumnya = $tahunSekarang - 1;
+        // Ambil semua pemegang saham terkait filter
+        $pemegangSahamFilter = !empty($request->pemegang_saham) && $request->pemegang_saham !== 'semua'
+            ? (array) $request->pemegang_saham
+            : AnggaranCsr::select('pemegang_saham')->distinct()->pluck('pemegang_saham')->toArray();
     
-            // Ambil semua pemegang saham
-            $semuaPemegangSaham = AnggaranCsr::select('pemegang_saham')->distinct()->pluck('pemegang_saham')->toArray();
+        // Cari pemegang saham yang belum punya data di tahunFilter
+        $sahamYangSudahAda = $anggaranList->pluck('pemegang_saham')->toArray();
+        $sahamYangBelumAda = array_diff($pemegangSahamFilter, $sahamYangSudahAda);
     
-            // Jika difilter, pakai filter itu
-            $pemegangSahamFilter = !empty($request->pemegang_saham) && $request->pemegang_saham !== 'semua'
-                ? (array) $request->pemegang_saham
-                : $semuaPemegangSaham;
+        // Tambahkan data fallback dari tahun sebelumnya jika belum ada
+        if (!empty($sahamYangBelumAda)) {
+            $tahunSebelumnya = $tahunFilter - 1;
     
-            // Ambil data dari tahun lalu
-            $anggaranList = AnggaranCsr::where('tahun', $tahunSebelumnya)
-                ->whereIn('pemegang_saham', $pemegangSahamFilter)
+            $fallbacks = AnggaranCsr::where('tahun', $tahunSebelumnya)
+                ->whereIn('pemegang_saham', $sahamYangBelumAda)
                 ->get()
                 ->filter(function ($item) {
                     return $item->hitungSisaAnggaranTotal() > 0;
                 })
-                ->map(function ($item) use ($tahunSekarang) {
+                ->map(function ($item) use ($tahunFilter) {
                     $clone = clone $item;
-                    $clone->tahun = $tahunSekarang;
+                    $clone->tahun = $tahunFilter;
                     $clone->jumlah_anggaran = $item->hitungSisaAnggaranTotal();
                     $clone->sisa_dari_tahun_lalu = true;
                     return $clone;
                 });
+    
+            $anggaranList = $anggaranList->concat($fallbacks);
         }
     
         $result = [];
@@ -82,12 +84,15 @@ class CsrController extends Controller
             }
         }
     
-        $totalAnggaran = !empty($request->bulan) 
-            ? array_sum(array_column($result, 'total_anggaran'))
-            : $anggaranList->sum('jumlah_anggaran');
+        $totalAnggaran = $anggaranList->sum(function ($item) {
+            return $item->getTotalAnggaranTampilan();
+        });
     
         $totalRealisasi = array_sum(array_column($result, 'realisasi'));
-        $sisaCsr = max($totalAnggaran - $totalRealisasi, 0);
+    
+        $sisaCsr = $anggaranList->sum(function ($item) {
+            return $item->getSisaAnggaranTampilan();
+        });
     
         return response()->json([
             'jumlah_anggaran' => $totalAnggaran,
@@ -95,6 +100,7 @@ class CsrController extends Controller
             'sisa_csr' => $sisaCsr
         ]);
     }
+    
     
     public function chartByBidangKegiatan(Request $request)
 {

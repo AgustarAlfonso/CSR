@@ -78,6 +78,44 @@ public function penambahan()
     return $this->hasOne(PenambahanAnggaran::class, 'anggaran_csr_id');
 }
 
+public function getTotalAnggaranTampilan()
+{
+    // Jika sudah ada properti total_anggaran_tampilan (misalnya dari controller), pakai itu
+    if (isset($this->total_anggaran_tampilan)) {
+        return $this->total_anggaran_tampilan;
+    }
+
+    $sisaTahunLalu = self::where('pemegang_saham', $this->pemegang_saham)
+        ->where('tahun', '<', $this->tahun)
+        ->get()
+        ->sum(function ($item) {
+            return $item->hitungSisaAnggaranTotal();
+        });
+
+    // Cek apakah data ini hasil fallback (dari tahun sebelumnya)
+    if (!empty($this->sisa_dari_tahun_lalu)) {
+        return $this->jumlah_anggaran;
+    }
+
+    return $this->jumlah_anggaran + $sisaTahunLalu;
+}
+
+public function getSisaAnggaranTampilan()
+{
+    // Jika sudah ada properti sisa_anggaran_tampilan (misalnya dari controller), pakai itu
+    if (isset($this->sisa_anggaran_tampilan)) {
+        return $this->sisa_anggaran_tampilan;
+    }
+
+    $total = $this->getTotalAnggaranTampilan();
+
+    $realisasi = \App\Models\Csr::where('pemegang_saham', $this->pemegang_saham)
+        ->where('tahun', $this->tahun)
+        ->sum('realisasi_csr');
+
+    return $total - $realisasi;
+}
+
 
 public function getDetailRiwayatCsr()
 {
