@@ -85,20 +85,39 @@ public function getTotalAnggaranTampilan()
         return $this->total_anggaran_tampilan;
     }
 
-    $sisaTahunLalu = self::where('pemegang_saham', $this->pemegang_saham)
-        ->where('tahun', '<', $this->tahun)
-        ->get()
-        ->sum(function ($item) {
-            return $item->hitungSisaAnggaranTotal();
-        });
-
     // Cek apakah data ini hasil fallback (dari tahun sebelumnya)
     if (!empty($this->sisa_dari_tahun_lalu)) {
         return $this->jumlah_anggaran;
     }
 
+    $tahunSebelumnya = self::where('pemegang_saham', $this->pemegang_saham)
+        ->where('tahun', $this->tahun - 1)
+        ->first();
+
+    $sisaTahunLalu = 0;
+
+    if ($tahunSebelumnya) {
+        $jumlahAnggaranTahunLalu = $tahunSebelumnya->jumlah_anggaran;
+        $totalAnggaranTahunLalu = $tahunSebelumnya->getTotalAnggaranTampilan(); // termasuk sisa dari 2 tahun lalu
+        $realisasiTahunLalu = \App\Models\Csr::where('pemegang_saham', $this->pemegang_saham)
+            ->where('tahun', $this->tahun - 1)
+            ->sum('realisasi_csr');
+
+        // Jika realisasi melebihi jumlah anggaran tahun lalu, kurangi sisa dari tahun sebelumnya
+        if ($realisasiTahunLalu > $jumlahAnggaranTahunLalu) {
+            $kelebihan = $realisasiTahunLalu - $jumlahAnggaranTahunLalu;
+            $sisaSebenarnya = max($totalAnggaranTahunLalu - $jumlahAnggaranTahunLalu, 0); // Hanya sisa dari tahun sebelumnya
+
+            // Kurangi sisa tahun lalu dengan kelebihan realisasi
+            $sisaTahunLalu = max($sisaSebenarnya - $kelebihan, 0);
+        } else {
+            $sisaTahunLalu = $totalAnggaranTahunLalu - $realisasiTahunLalu;
+        }
+    }
+
     return $this->jumlah_anggaran + $sisaTahunLalu;
 }
+
 
 public function getSisaAnggaranTampilan()
 {
@@ -117,22 +136,41 @@ public function getSisaAnggaranTampilan()
 }
 
 
+
 public function getDetailRiwayatCsr()
 {
-    // Ambil semua realisasi CSR per bulan
+    // Ambil semua realisasi CSR per bulan untuk tahun ini
     $realisasi = Csr::where('pemegang_saham', $this->pemegang_saham)
-        ->where('tahun', $this->tahun);
-
-
-    $realisasi = $realisasi->orderBy('bulan')->get()->groupBy('bulan');
-
-    // Hitung sisa tahun lalu
-    $sisaTahunLalu = AnggaranCsr::where('pemegang_saham', $this->pemegang_saham)
-        ->where('tahun', '<', $this->tahun)
+        ->where('tahun', $this->tahun)
+        ->orderBy('bulan')
         ->get()
-        ->sum(fn($item) => $item->hitungSisaAnggaranTotal());
+        ->groupBy('bulan');
 
-    // Jika data ini fallback (sisa dari tahun lalu), maka jangan hitung sisa lagi (hindari double count)
+    // Hitung sisa tahun lalu dengan memperhitungkan kelebihan realisasi
+    $tahunSebelumnya = AnggaranCsr::where('pemegang_saham', $this->pemegang_saham)
+        ->where('tahun', $this->tahun - 1)
+        ->first();
+
+    $sisaTahunLalu = 0;
+
+    if ($tahunSebelumnya) {
+        $jumlahAnggaranTahunLalu = $tahunSebelumnya->jumlah_anggaran;
+        $totalAnggaranTahunLalu = $tahunSebelumnya->getTotalAnggaranTampilan(); // termasuk sisa dari dua tahun lalu
+
+        $realisasiTahunLalu = \App\Models\Csr::where('pemegang_saham', $this->pemegang_saham)
+            ->where('tahun', $this->tahun - 1)
+            ->sum('realisasi_csr');
+
+        if ($realisasiTahunLalu > $jumlahAnggaranTahunLalu) {
+            $kelebihan = $realisasiTahunLalu - $jumlahAnggaranTahunLalu;
+            $sisaSebelumnya = max($totalAnggaranTahunLalu - $jumlahAnggaranTahunLalu, 0);
+            $sisaTahunLalu = max($sisaSebelumnya - $kelebihan, 0);
+        } else {
+            $sisaTahunLalu = max($totalAnggaranTahunLalu - $realisasiTahunLalu, 0);
+        }
+    }
+
+    // Jika data ini fallback (dari tahun sebelumnya), maka jangan hitung sisa lagi
     if (!empty($this->sisa_dari_tahun_lalu)) {
         $totalAnggaran = $this->jumlah_anggaran;
         $sisaTahunLalu = $this->jumlah_anggaran;
@@ -142,6 +180,7 @@ public function getDetailRiwayatCsr()
         $penambahanTahunIni = $this->jumlah_anggaran;
     }
 
+    // Inisialisasi data per bulan
     $dataBulan = [];
     $totalRealisasi = 0;
 
@@ -163,6 +202,7 @@ public function getDetailRiwayatCsr()
         'sisa_akhir_tahun' => max($totalAnggaran - $totalRealisasi, 0),
     ];
 }
+
 
 
 

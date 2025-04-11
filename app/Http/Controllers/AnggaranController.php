@@ -13,7 +13,6 @@ class AnggaranController extends Controller
 {
 
 
-
     public function index(Request $request)
     {
         $tahunSekarang = now()->year;
@@ -64,33 +63,10 @@ class AnggaranController extends Controller
     
         // Gabungkan data asli + fallback
         $anggaran = $anggaranTahunIni->concat($fallbackCollection)->map(function ($data) {
-            $sisaTahunLalu = AnggaranCsr::where('pemegang_saham', $data->pemegang_saham)
-                ->where('tahun', '<', $data->tahun)
-                ->get()
-                ->sum(function ($item) {
-                    return $item->hitungSisaAnggaranTotal();
-                });
-        
-            if (!empty($data->sisa_dari_tahun_lalu)) {
-                // Jangan double count
-                $totalAnggaranUntukTampilan = $data->jumlah_anggaran;
-            } else {
-                // Data asli, tambahkan sisa tahun lalu
-                $totalAnggaranUntukTampilan = $data->jumlah_anggaran + $sisaTahunLalu;
-            }
-        
-            $realisasiTahunIni = \App\Models\Csr::where('pemegang_saham', $data->pemegang_saham)
-                ->where('tahun', $data->tahun)
-                ->sum('realisasi_csr');
-        
-            $sisaAnggaran = $totalAnggaranUntukTampilan - $realisasiTahunIni;
-        
-            $data->total_anggaran_tampilan = $totalAnggaranUntukTampilan;
-            $data->sisa_anggaran_tampilan = $sisaAnggaran;
-        
+            $data->total_anggaran_tampilan = $data->getTotalAnggaranTampilan();
+            $data->sisa_anggaran_tampilan = $data->getSisaAnggaranTampilan();
             return $data;
         });
-        
     
         $totalAnggaran = $anggaran->sum('total_anggaran_tampilan');
     
@@ -102,7 +78,6 @@ class AnggaranController extends Controller
         $daftarTahun = $daftarTahun->sort()->values();
     
         $daftarPemegangSaham = AnggaranCsr::select('pemegang_saham')->distinct()->pluck('pemegang_saham');
-        
     
         return view('anggaran.index', compact(
             'anggaran',
@@ -113,6 +88,7 @@ class AnggaranController extends Controller
             'fallback'
         ));
     }
+    
     
 
 

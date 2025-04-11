@@ -293,32 +293,15 @@ class CsrController extends Controller
         }
     }
 
-    $jumlahAnggaran = (float) $anggaran->jumlah_anggaran;
+    $sisaAnggaran = $anggaran->getSisaAnggaranTampilan();
 
-    // Hitung total realisasi untuk tahun ini
-    $realisasiSebelumnya = \App\Models\Csr::where('pemegang_saham', $pemegangSaham)
-                        ->where('tahun', $tahun)
-                        ->sum('realisasi_csr');
-
-    $totalRealisasiSetelahInput = $realisasiSebelumnya + $realisasiBaru;
-    $sisaSetelahInput = $jumlahAnggaran - $totalRealisasiSetelahInput;
-
-    // Debug sementara (hapus nanti kalau udah oke)
-    // dd([
-    //     'tahun_anggaran_diambil_dari' => $tahunFallback,
-    //     'jumlah_anggaran' => $jumlahAnggaran,
-    //     'realisasi_csr_di_tahun_ini' => $realisasiSebelumnya,
-    //     'input_realisasi_baru' => $realisasiBaru,
-    //     'total_realisasi_setelah_input' => $totalRealisasiSetelahInput,
-    //     'sisa_setelah_input' => $sisaSetelahInput,
-    // ]);
-
-    if ($totalRealisasiSetelahInput > $jumlahAnggaran) {
+    if ($realisasiBaru > $sisaAnggaran) {
         return back()
-            ->with('csr_error', 'Realisasi melebihi anggaran yang tersedia (termasuk dari tahun sebelumnya).')
+            ->with('csr_error', 'Realisasi melebihi sisa anggaran yang tersedia (termasuk fallback jika ada).')
             ->with('request_data', $request->all())
             ->withInput();
     }
+    
     
 
     // Simpan data
