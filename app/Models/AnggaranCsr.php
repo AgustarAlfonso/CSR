@@ -145,40 +145,19 @@ public function getDetailRiwayatCsr()
         ->get()
         ->groupBy('bulan');
 
-    $sisaTahunLalu = 0;
+    $totalAnggaran = $this->getTotalAnggaranTampilan();
+    $sisaAkhirTahun = $this->getSisaAnggaranTampilan();
+    $penambahanTahunIni = $this->jumlah_anggaran ?: 0;
 
-    // Hitung sisa tahun lalu
-    $tahunSebelumnya = AnggaranCsr::where('pemegang_saham', $this->pemegang_saham)
-        ->where('tahun', $this->tahun - 1)
-        ->first();
-
-    if ($tahunSebelumnya) {
-        $jumlahAnggaranTahunLalu = $tahunSebelumnya->jumlah_anggaran;
-        $totalAnggaranTahunLalu = $tahunSebelumnya->getTotalAnggaranTampilan();
-        $realisasiTahunLalu = Csr::where('pemegang_saham', $this->pemegang_saham)
-            ->where('tahun', $this->tahun - 1)
-            ->sum('realisasi_csr');
-
-        if ($realisasiTahunLalu > $jumlahAnggaranTahunLalu) {
-            $kelebihan = $realisasiTahunLalu - $jumlahAnggaranTahunLalu;
-            $sisaSebelumnya = max($totalAnggaranTahunLalu - $jumlahAnggaranTahunLalu, 0);
-            $sisaTahunLalu = max($sisaSebelumnya - $kelebihan, 0);
-        } else {
-            $sisaTahunLalu = max($totalAnggaranTahunLalu - $realisasiTahunLalu, 0);
-        }
-    }
-
-    // Fallback logic
+    // Jika fallback, berarti penambahan tahun ini = 0, dan total anggaran = sisa dari tahun lalu
     if (!empty($this->sisa_dari_tahun_lalu) || !empty($this->is_fallback)) {
-        $totalAnggaran = $this->jumlah_anggaran;
-        $sisaTahunLalu = $this->jumlah_anggaran;
         $penambahanTahunIni = 0;
-    } else {
-        $totalAnggaran = $this->jumlah_anggaran + $sisaTahunLalu;
-        $penambahanTahunIni = $this->jumlah_anggaran ?: 0;
     }
 
-    // Realisasi per bulan
+    // Ambil sisa tahun lalu sebagai (total - penambahan tahun ini)
+    $sisaTahunLalu = $totalAnggaran - $penambahanTahunIni;
+
+    // Realisasi per bulan dan total
     $dataBulan = [];
     $totalRealisasi = 0;
 
@@ -194,10 +173,13 @@ public function getDetailRiwayatCsr()
     return [
         'sisa_tahun_lalu' => $sisaTahunLalu,
         'penambahan_tahun_ini' => $penambahanTahunIni,
+        'total_realisasi_tahun_ini' => $totalRealisasi,
         'bulan_realisasi' => $dataBulan,
-        'sisa_akhir_tahun' => max($totalAnggaran - $totalRealisasi, 0),
+        'sisa_akhir_tahun' => $sisaAkhirTahun,
     ];
 }
+
+
 
 
 
