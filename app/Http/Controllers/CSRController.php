@@ -533,19 +533,18 @@ public function riwayatCsrAjax(Request $request)
 
 protected function ambilRiwayatCsr($tahun, $pemegangSaham)
 {
-    // === MODE: SEMUA PEMEGANG SAHAM ===
     if ($pemegangSaham === 'semua') {
-        $dataTahunIni = \App\Models\AnggaranCsr::with('penambahan')
+        $dataTahunIni = AnggaranCsr::with('penambahan')
             ->where('tahun', $tahun)
             ->get();
 
-        $semuaSaham = \App\Models\AnggaranCsr::select('pemegang_saham')->distinct()->pluck('pemegang_saham')->toArray();
+        $semuaSaham = AnggaranCsr::select('pemegang_saham')->distinct()->pluck('pemegang_saham')->toArray();
         $sudahAda = $dataTahunIni->pluck('pemegang_saham')->toArray();
         $belumAda = array_diff($semuaSaham, $sudahAda);
 
         $fallbacks = collect();
         if (!empty($belumAda)) {
-            $fallbacks = \App\Models\AnggaranCsr::with('penambahan')
+            $fallbacks = AnggaranCsr::with('penambahan')
                 ->where('tahun', $tahun - 1)
                 ->whereIn('pemegang_saham', $belumAda)
                 ->get()
@@ -555,6 +554,7 @@ protected function ambilRiwayatCsr($tahun, $pemegangSaham)
                     $clone->tahun = $tahun;
                     $clone->jumlah_anggaran = $item->hitungSisaAnggaranTotal();
                     $clone->is_fallback = true;
+                    $clone->sisa_dari_tahun_lalu = true;
                     return $clone;
                 });
         }
@@ -564,9 +564,9 @@ protected function ambilRiwayatCsr($tahun, $pemegangSaham)
             return $item;
         })->concat($fallbacks);
 
-        // Fallback penuh kalau kosong semua
+        // Fallback penuh jika kosong semua
         if ($gabungan->isEmpty()) {
-            $gabungan = \App\Models\AnggaranCsr::with('penambahan')
+            $gabungan = AnggaranCsr::with('penambahan')
                 ->where('tahun', $tahun - 1)
                 ->get()
                 ->filter(fn($item) => $item->hitungSisaAnggaranTotal() > 0)
@@ -575,11 +575,11 @@ protected function ambilRiwayatCsr($tahun, $pemegangSaham)
                     $clone->tahun = $tahun;
                     $clone->jumlah_anggaran = $item->hitungSisaAnggaranTotal();
                     $clone->is_fallback = true;
+                    $clone->sisa_dari_tahun_lalu = true;
                     return $clone;
                 });
         }
 
-        // === Proses Agregasi Data Gabungan ===
         $totalSisaTahunLalu = 0;
         $totalPenambahan = 0;
         $totalRealisasiBulanan = array_fill(1, 12, 0);
@@ -587,7 +587,6 @@ protected function ambilRiwayatCsr($tahun, $pemegangSaham)
         foreach ($gabungan as $item) {
             $detail = $item->getDetailRiwayatCsr();
 
-            // Jika fallback dan tidak punya record penambahan, masukkan ke sisa tahun lalu
             if ($item->is_fallback && !$item->penambahan) {
                 $totalSisaTahunLalu += $item->jumlah_anggaran;
             } else {
@@ -622,14 +621,14 @@ protected function ambilRiwayatCsr($tahun, $pemegangSaham)
         ]];
     }
 
-    // === MODE: PEMEGANG SAHAM SPESIFIK ===
-    $anggarans = \App\Models\AnggaranCsr::with('penambahan')
+    // Mode pemegang saham spesifik
+    $anggarans = AnggaranCsr::with('penambahan')
         ->where('tahun', $tahun)
         ->where('pemegang_saham', $pemegangSaham)
         ->get();
 
     if ($anggarans->isEmpty()) {
-        $anggarans = \App\Models\AnggaranCsr::with('penambahan')
+        $anggarans = AnggaranCsr::with('penambahan')
             ->where('tahun', $tahun - 1)
             ->where('pemegang_saham', $pemegangSaham)
             ->get()
@@ -638,6 +637,8 @@ protected function ambilRiwayatCsr($tahun, $pemegangSaham)
                 $clone = clone $item;
                 $clone->tahun = $tahun;
                 $clone->jumlah_anggaran = $item->hitungSisaAnggaranTotal();
+                $clone->is_fallback = true;
+                $clone->sisa_dari_tahun_lalu = true;
                 return $clone;
             });
     }
@@ -646,12 +647,13 @@ protected function ambilRiwayatCsr($tahun, $pemegangSaham)
     foreach ($anggarans as $anggaran) {
         $riwayatPerSaham[] = [
             'pemegang_saham' => $anggaran->pemegang_saham,
-            'detail' => $anggaran->getDetailRiwayatCsr()
+            'detail' => $anggaran->getDetailRiwayatCsr(),
         ];
     }
 
     return $riwayatPerSaham;
 }
+
 
 
 

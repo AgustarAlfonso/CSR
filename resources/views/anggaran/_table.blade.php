@@ -41,14 +41,16 @@
           <td class="px-3 py-2 flex space-x-2 items-center">
 
             <!-- Histori Penambahan -->
-          <button @click="showModalId = 'riwayat-{{ $row->id }}'"
+            <a 
+            href="{{ route('csr.riwayat', ['tahun' => $row->tahun, 'pemegang_saham' => $row->pemegang_saham]) }}"
             class="bg-blue-100 hover:bg-blue-200 text-blue-600 p-2 rounded-full transition duration-200 shadow-sm"
-            title="Lihat Riwayat Penambahan Anggaran">
+            title="Lihat Riwayat Penambahan Anggaran"
+          >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M15 17h5l-1.405-1.405M4 4v16c0 .55.45 1 1 1h14a1 1 0 001-1V7.83a1 1 0 00-.293-.707l-4.83-4.83A1 1 0 0014.17 2H5a1 1 0 00-1 1z" />
             </svg>
-          </button>
+          </a>
 
                     @php
             $isFallback = !empty($row->sisa_dari_tahun_lalu); // boolean flag
@@ -77,55 +79,6 @@
 
             @endif
 
-            <!-- Modal Riwayat Penambahan -->
-            <div
-            x-show="showModalId === 'riwayat-{{ $row->id }}'"
-            x-cloak
-            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
-            x-transition
-          >
-            <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative">
-              <h2 class="text-lg font-semibold text-gray-800 mb-4">
-                📋 Informasi Anggaran CSR
-              </h2>
-          
-              <div class="text-sm space-y-3">
-                <div>
-                  <strong>Dana Anggaran Tahun Ini:</strong><br>
-                  Rp{{ number_format($row->jumlah_anggaran, 0, ',', '.') }}
-                </div>
-          
-                <div>
-                  <strong>Sisa dari Tahun Sebelumnya:</strong><br>
-                  Rp{{ number_format(
-                    (!empty($row->sisa_dari_tahun_lalu)) ? $row->jumlah_anggaran :
-                    (\App\Models\AnggaranCsr::where('pemegang_saham', $row->pemegang_saham)
-                        ->where('tahun', '<', $row->tahun)
-                        ->get()
-                        ->sum(fn($item) => $item->hitungSisaAnggaranTotal())
-                    ), 0, ',', '.') }}
-                </div>
-          
-                <div>
-                  <strong>Total Anggaran:</strong><br>
-                  Rp{{ number_format($row->total_anggaran_tampilan, 0, ',', '.') }}
-                </div>
-                <div>
-                  <strong>Realisasi Tahun Ini:</strong><br>
-                  Rp{{ number_format($row->total_anggaran_tampilan - $row->sisa_anggaran_tampilan, 0, ',', '.') }}
-                </div>
-          
-                <div>
-                  <strong>Sisa Anggaran Saat Ini:</strong><br>
-                  Rp{{ number_format($row->sisa_anggaran_tampilan, 0, ',', '.') }}
-                </div>
-              </div>
-          
-              <button @click="showModalId = null"
-                class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-sm">
-                ✕
-              </button>
-            </div>
           
 
 

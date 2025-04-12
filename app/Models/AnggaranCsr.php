@@ -139,25 +139,23 @@ public function getSisaAnggaranTampilan()
 
 public function getDetailRiwayatCsr()
 {
-    // Ambil semua realisasi CSR per bulan untuk tahun ini
     $realisasi = Csr::where('pemegang_saham', $this->pemegang_saham)
         ->where('tahun', $this->tahun)
         ->orderBy('bulan')
         ->get()
         ->groupBy('bulan');
 
-    // Hitung sisa tahun lalu dengan memperhitungkan kelebihan realisasi
+    $sisaTahunLalu = 0;
+
+    // Hitung sisa tahun lalu
     $tahunSebelumnya = AnggaranCsr::where('pemegang_saham', $this->pemegang_saham)
         ->where('tahun', $this->tahun - 1)
         ->first();
 
-    $sisaTahunLalu = 0;
-
     if ($tahunSebelumnya) {
         $jumlahAnggaranTahunLalu = $tahunSebelumnya->jumlah_anggaran;
-        $totalAnggaranTahunLalu = $tahunSebelumnya->getTotalAnggaranTampilan(); // termasuk sisa dari dua tahun lalu
-
-        $realisasiTahunLalu = \App\Models\Csr::where('pemegang_saham', $this->pemegang_saham)
+        $totalAnggaranTahunLalu = $tahunSebelumnya->getTotalAnggaranTampilan();
+        $realisasiTahunLalu = Csr::where('pemegang_saham', $this->pemegang_saham)
             ->where('tahun', $this->tahun - 1)
             ->sum('realisasi_csr');
 
@@ -170,27 +168,26 @@ public function getDetailRiwayatCsr()
         }
     }
 
-    // Jika data ini fallback (dari tahun sebelumnya), maka jangan hitung sisa lagi
-    if (!empty($this->sisa_dari_tahun_lalu)) {
+    // Fallback logic
+    if (!empty($this->sisa_dari_tahun_lalu) || !empty($this->is_fallback)) {
         $totalAnggaran = $this->jumlah_anggaran;
         $sisaTahunLalu = $this->jumlah_anggaran;
         $penambahanTahunIni = 0;
     } else {
         $totalAnggaran = $this->jumlah_anggaran + $sisaTahunLalu;
-        $penambahanTahunIni = $this->jumlah_anggaran ?: 0;    }
+        $penambahanTahunIni = $this->jumlah_anggaran ?: 0;
+    }
 
-    // Inisialisasi data per bulan
+    // Realisasi per bulan
     $dataBulan = [];
     $totalRealisasi = 0;
 
     for ($bulan = 1; $bulan <= 12; $bulan++) {
         $realisasiBulan = isset($realisasi[$bulan]) ? $realisasi[$bulan]->sum('realisasi_csr') : 0;
-
         $dataBulan[$bulan] = [
             'bulan' => $bulan,
             'realisasi' => $realisasiBulan,
         ];
-
         $totalRealisasi += $realisasiBulan;
     }
 
