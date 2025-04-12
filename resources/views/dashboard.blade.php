@@ -11,15 +11,55 @@
                 <h5>Filter CSR</h5>
             </div>
             <div class="card-body">
-                <div class="mb-3">
+                <div x-data="dropdownData()" class="relative mb-3" >
                     <label for="pemegang_saham" class="form-label">Pemegang Saham</label>
-                    <select id="pemegang_saham" class="form-select">
-                        <option value="">Semua</option>
-                        @foreach($pemegang_saham as $saham)
-                            <option value="{{ $saham }}">{{ $saham }}</option>
-                        @endforeach
-                    </select>
+                    <button @click="open = !open"
+                            class="form-select w-full text-left"
+                            type="button">
+                        <span x-text="selectedText || 'Semua'"></span>
+                    </button>
+                    
+                    <div x-show="open" @click.away="open = false"
+                    class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded shadow-md max-h-60 overflow-y-auto">
+                   <ul class="text-sm">
+                       <!-- Semua -->
+                       <li @click="select(null, 'Semua')"
+                           class="px-4 py-2 hover:bg-blue-50 hover:text-blue-700 cursor-pointer border-b">
+                           Semua
+                       </li>
+               
+                       <!-- Provinsi dan kabupaten/kota -->
+                       <template x-for="(cities, province) in options" :key="province">
+                           <li class="border-b">
+                               <!-- Provinsi line -->
+                               <div class="flex items-center hover:bg-gray-100 cursor-pointer px-4 py-2">
+                                   <!-- Expand toggle area -->
+                                   <div class="w-4 h-4 flex items-center justify-center text-gray-600 mr-2"
+                                        @click.stop="toggleProvince(province)">
+                                       <span x-text="openedProvince === province ? '−' : '+'"></span>
+                                   </div>
+                                   <!-- Select provinsi (klik nama) -->
+                                   <span @click.stop="select(province, province)" class="flex-1" x-text="province"></span>
+                               </div>
+               
+                               <!-- Sub kota/kabupaten -->
+                               <ul x-show="openedProvince === province" class="pl-10 bg-gray-50">
+                                   <template x-for="city in cities" :key="city">
+                                       <li @click="select(city, city)"
+                                           class="px-4 py-2 hover:bg-blue-100 hover:text-blue-700 cursor-pointer">
+                                           <span x-text="city"></span>
+                                       </li>
+                                   </template>
+                               </ul>
+                           </li>
+                       </template>
+                   </ul>
+               </div>
+               
+                
+                    <input type="hidden" name="pemegang_saham" :value="selectedValue" id="pemegang_saham">
                 </div>
+                
 
                 <div class="mb-3">
                     <label for="bidang_kegiatan" class="form-label">Bidang Kegiatan</label>
@@ -101,6 +141,8 @@
 @endsection
 
 @push('scripts')
+
+
 <script>
         var map;
         var geojsonLayer;
@@ -128,8 +170,7 @@
             'Kab. Kuansing': 'kuantan_singingi.geojson'
         };
 
-
-    $(document).ready(function () {
+        $(document).ready(function () {
         $('#lihat_selengkapnya').click(function (e) {
             e.preventDefault();
             let params = new URLSearchParams({
@@ -147,7 +188,10 @@
             loadGeoJSON($('#pemegang_saham').val());
         });
 
-        function applyFilter() {
+
+    });
+
+    function applyFilter() {
             $.ajax({
                 url: '{{ route("csr.filter") }}',
                 type: 'POST',
@@ -169,7 +213,6 @@
                 }
             });
         }
-    });
 
     function loadGeoJSON(region) {
             geojsonLayer.clearLayers();
@@ -235,6 +278,86 @@
         })
         .catch(error => console.error("Error loading GeoJSON:", error));
 }
+    window.applyFilter = applyFilter;
+    window.loadGeoJSON = loadGeoJSON;
+
+    function dropdownData() {
+        return {
+            open: false,
+            openedProvince: null,
+            selectedValue: '',
+            selectedText: '',
+            options: {
+'Provinsi Riau': [
+    'Kab. Bengkalis',
+    'Kab. Indragiri Hilir',
+    'Kab. Indragiri Hulu',
+    'Kab. Kampar',
+    'Kab. Kepulauan Meranti',
+    'Kab. Kuantan Singingi',
+    'Kab. Pelalawan',
+    'Kab. Rokan Hilir',
+    'Kab. Rokan Hulu',
+    'Kab. Siak',
+    'Kota Dumai',
+    'Kota Pekanbaru'
+],
+'Provinsi Kepulauan Riau': [
+    'Kab. Bintan',
+    'Kab. Karimun',
+    'Kab. Kepulauan Anambas',
+    'Kab. Lingga',
+    'Kab. Natuna',
+    'Kota Batam',
+    'Kota Tanjung Pinang'
+]
+            },
+            toggleProvince(province) {
+                this.openedProvince = this.openedProvince === province ? null : province;
+            },
+            select(value, text) {
+    this.selectedValue = value || '';
+    this.selectedText = text;
+    this.open = false;
+
+    const pemegangSelect = document.getElementById('pemegang_saham');
+    if (pemegangSelect) {
+        pemegangSelect.value = value;
+    }
+
+    if (typeof window.applyFilter === 'function') {
+        window.applyFilter();
+    }
+
+    if (typeof window.loadGeoJSON === 'function') {
+        window.loadGeoJSON(this.selectedValue);
+    }
+
+    // Ini satu kali panggil, semua update
+    if (typeof window.updateAllCharts === 'function') {
+        window.updateAllCharts();
+    }
+}
+
+                    };
+                }
+
+                function updateAllCharts() {
+    if (typeof window.fetchFilteredData === 'function') {
+        window.fetchFilteredData();
+    }
+
+    if (window.currentChartType === "bidang_kegiatan") {
+        if (typeof window.loadBarChartByBidangKegiatan === 'function') {
+            window.loadBarChartByBidangKegiatan();
+        }
+    } else {
+        if (typeof window.loadBarChartFromAPI === 'function') {
+            window.loadBarChartFromAPI();
+        }
+    }
+}
+
 
     document.addEventListener("DOMContentLoaded", function () {
         map = L.map('map').setView([0.5, 102.0], 7);
