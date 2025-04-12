@@ -112,55 +112,75 @@ $defaultTahun = $isEdit ? $csr->tahun : '';
             <!-- Pemegang Saham -->
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Pemegang Saham</label>
-            <!-- Pemegang Saham -->
-            <div class="relative" x-data="{ open: false, pemegang_saham: '{{ $defaultPemegangSaham }}' }">
-            <div class="relative inline-flex w-full">
-             <span class="inline-flex w-full divide-x divide-gray-300 overflow-hidden rounded border border-gray-300 bg-white shadow-sm">
-            <button
-                type="button"
-                @click="open = !open"
-                class="flex-1 px-3 py-2 text-sm font-medium text-gray-700 text-left transition-colors hover:bg-gray-50 hover:text-gray-900 focus:relative"
-                x-text="pemegang_saham || '-- Pilih Pemegang Saham --'">
-            </button>
-
-            <button
-                type="button"
-                @click="open = !open"
-                aria-label="Menu"
-                class="px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 focus:relative">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                    stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                </svg>
-            </button>
-        </span>
-
-        <!-- Hidden input for form submission -->
-        <input type="hidden" name="pemegang_saham" :value="pemegang_saham" required>
-
-        <!-- Dropdown menu -->
-        <div
-            x-show="open"
-            @click.away="open = false"
-            role="menu"
-            class="absolute z-10 mt-2 w-full max-h-60 overflow-auto rounded border border-gray-300 bg-white shadow-sm">
-            @foreach([
-                'Kab. Kepulauan Anambas','Kab. Indragiri Hulu','Kota Batam','Kab. Indragiri Hilir','Provinsi Riau','Kab. Kampar','Kab. Bintan',
-                'Kab. Bengkalis','Kab. Rokan Hilir','Kab. Meranti','Kab. Natuna','Kab. Siak','Kab. Pelalawan','Kota Dumai','Kota Pekanbaru',
-                'Provinsi Kepulauan Riau','Kab. Rokan Hulu','Kab. Lingga','Kab. Karimun','Kota Tanjung Pinang','Kab. Kuansing'
-            ] as $ps)
-                <a href="#"
-                    @click.prevent="pemegang_saham = '{{ $ps }}'; open = false; cekSisaAnggaran()"
-                    class="block px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
-                    role="menuitem">
-                    {{ $ps }}
-                </a>
-            @endforeach
-        </div>
-    </div>
-</div>
-
+            
+                <div class="relative" 
+                     x-data="{
+                        open: false, 
+                        pemegang_saham: '{{ $defaultPemegangSaham }}', 
+                        search: '', 
+                        daftar: @js([
+                            'Kab. Kepulauan Anambas','Kab. Indragiri Hulu','Kota Batam','Kab. Indragiri Hilir','Provinsi Riau','Kab. Kampar','Kab. Bintan',
+                            'Kab. Bengkalis','Kab. Rokan Hilir','Kab. Meranti','Kab. Natuna','Kab. Siak','Kab. Pelalawan','Kota Dumai','Kota Pekanbaru',
+                            'Provinsi Kepulauan Riau','Kab. Rokan Hulu','Kab. Lingga','Kab. Karimun','Kota Tanjung Pinang','Kab. Kuansing'
+                        ])
+                     }">
+            
+                    <div class="relative inline-flex w-full">
+                        <span class="inline-flex w-full divide-x divide-gray-300 overflow-hidden rounded border border-gray-300 bg-white shadow-sm">
+                            <button
+                                type="button"
+                                @click="open = !open"
+                                class="flex-1 px-3 py-2 text-sm font-medium text-gray-700 text-left transition-colors hover:bg-gray-50 hover:text-gray-900 focus:relative"
+                                x-text="pemegang_saham || '-- Pilih Pemegang Saham --'">
+                            </button>
+            
+                            <button
+                                type="button"
+                                @click="open = !open"
+                                aria-label="Menu"
+                                class="px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 focus:relative">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                </svg>
+                            </button>
+                        </span>
+            
+                        <!-- Hidden input for form submission -->
+                        <input type="hidden" name="pemegang_saham" :value="pemegang_saham" required>
+            
+                        <!-- Dropdown menu -->
+                        <div
+                            x-show="open"
+                            @click.away="open = false"
+                            class="absolute z-10 mt-2 w-full max-h-60 overflow-auto rounded border border-gray-300 bg-white shadow-sm"
+                        >
+                            <!-- Search input -->
+                            <div class="p-2">
+                                <input
+                                    type="text"
+                                    placeholder="Cari pemegang saham..."
+                                    class="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                                    x-model="search"
+                                >
+                            </div>
+            
+                            <!-- List options -->
+                            <template 
+                                x-for="item in daftar.filter(i => i.toLowerCase().includes(search.toLowerCase()))" 
+                                :key="item">
+                                <a href="#"
+                                    @click.prevent="pemegang_saham = item; open = false; search = ''; cekSisaAnggaran()"
+                                    class="block px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                                    role="menuitem"
+                                    x-text="item">
+                                </a>
+                            </template>
+                        </div>
+                    </div>
+                </div>
             </div>
+            
 
 
         
@@ -225,10 +245,22 @@ $defaultTahun = $isEdit ? $csr->tahun : '';
         <input type="hidden" name="bidang_kegiatan" :value="selectedBidang" required>
         <div x-show="open" @click.away="open = false"
              class="absolute z-10 mt-2 w-full max-h-60 overflow-auto rounded border bg-white shadow-sm">
-            @foreach([
-                'Pendidikan','Keagamaan','Kesejahteraan Sosial','Penghargaan','Olahraga','Seni & Budaya',
-                'Kewirausahaan','Dukungan Kegiatan Pemerintah','Lingkungan','Kesehatan','Bencana Alam','Sosial', 'Lainnya'
+             @foreach([
+                'Bencana Alam',
+                'Dukungan Kegiatan Pemerintah',
+                'Kesehatan',
+                'Kesejahteraan Sosial',
+                'Keagamaan',
+                'Kewirausahaan',
+                'Lingkungan',
+                'Olahraga',
+                'Pendidikan',
+                'Penghargaan',
+                'Seni & Budaya',
+                'Sosial',
+                'Lainnya'
             ] as $bidang)
+            
                 <a href="#" @click.prevent="selectedBidang = '{{ $bidang }}'; open = false"
                    class="block px-3 py-2 text-sm hover:bg-gray-50">
                     {{ $bidang }}
