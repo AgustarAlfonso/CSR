@@ -101,6 +101,7 @@
         </tfoot>
     </table>
     <div class="mt-4">
-        {{ $data->links('pagination::tailwind') }}
-    </div>
+      {{ $data->appends(request()->query())->links('pagination::tailwind') }}
+  </div>
+  
 </div>
