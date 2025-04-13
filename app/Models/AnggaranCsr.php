@@ -80,7 +80,6 @@ public function penambahan()
 
 public function getTotalAnggaranTampilan()
 {
-    // Jika sudah ada properti total_anggaran_tampilan (misalnya dari controller), pakai itu
     if (isset($this->total_anggaran_tampilan)) {
         return $this->total_anggaran_tampilan;
     }
@@ -98,22 +97,15 @@ public function getTotalAnggaranTampilan()
             ->where('tahun', $this->tahun - 1)
             ->sum('realisasi_csr');
 
-        if ($realisasiTahunLalu > $jumlahAnggaranTahunLalu) {
-            $kelebihan = $realisasiTahunLalu - $jumlahAnggaranTahunLalu;
-            $sisaSebenarnya = max($totalAnggaranTahunLalu - $jumlahAnggaranTahunLalu, 0);
-
-            $sisaTahunLalu = max($sisaSebenarnya - $kelebihan, 0);
-        } else {
-            $sisaTahunLalu = $totalAnggaranTahunLalu - $realisasiTahunLalu;
-        }
+        $sisaTahunLalu = $totalAnggaranTahunLalu - $realisasiTahunLalu;
+        // Ini bisa positif (sisa) atau negatif (hutang), dan kita biarin supaya kebawa ke tahun ini
     }
 
-    // Jika fallback, kembalikan sisa tahun lalu sebagai total (jumlah_anggaran = 0)
-    if (!empty($this->sisa_dari_tahun_lalu)) {
-        return $sisaTahunLalu;
-    }
+    // Total = anggaran tahun ini + sisa/hutang tahun lalu
+    $total = $this->jumlah_anggaran + $sisaTahunLalu;
 
-    return $this->jumlah_anggaran + $sisaTahunLalu;
+    // Pastikan gak minus kalau logikamu mau gitu, tapi dari penjelasanmu, minus BOLEH dibawa
+    return $total;
 }
 
 
