@@ -91,21 +91,18 @@
     <form method="POST" action="{{ route('anggaran.store') }}" class="space-y-5">
         @csrf
 
-        <!-- Dropdown Pemegang Saham -->
-        <div x-data="{ open: false, selected: '' }" class="relative">
+        <div x-data="{ open: false, selected: '', search: '' }" class="relative">
             <label for="pemegang_saham" class="block text-sm font-semibold text-gray-700 mb-1">Pemegang Saham</label>
-
+        
             <div class="relative inline-flex w-full">
-                <span
-                    class="inline-flex w-full divide-x divide-gray-300 overflow-hidden rounded border border-gray-300 bg-white shadow-sm"
-                >
+                <span class="inline-flex w-full divide-x divide-gray-300 overflow-hidden rounded border border-gray-300 bg-white shadow-sm">
                     <button
                         type="button"
                         @click="open = !open"
                         class="flex-1 px-3 py-2 text-sm font-medium text-gray-700 text-left transition-colors hover:bg-gray-50 hover:text-gray-900 focus:relative"
                         x-text="selected || '-- Pilih Pemegang Saham --'"
                     ></button>
-
+        
                     <button
                         type="button"
                         @click="open = !open"
@@ -118,51 +115,61 @@
                         </svg>
                     </button>
                 </span>
-
-                <!-- Hidden input for form submission -->
+        
                 <input type="hidden" name="pemegang_saham" :value="selected" required>
-
-                <!-- Dropdown menu -->
+        
                 <div
                     x-show="open"
                     @click.away="open = false"
                     role="menu"
                     class="absolute z-10 mt-2 w-full max-h-60 overflow-auto rounded border border-gray-300 bg-white shadow-sm"
                 >
-                @foreach([
-                    'Provinsi Riau',
-                    'Kota Pekanbaru',
-                    'Kab. Kampar',
-                    'Kab. Bengkalis',
-                    'Kab. Indragiri Hulu',
-                    'Kab. Indragiri Hilir',
-                    'Kab. Siak',
-                    'Kab. Pelalawan',
-                    'Kab. Kuansing',
-                    'Kab. Rokan Hulu',
-                    'Kab. Rokan Hilir',
-                    'Kota Dumai',
-                    'Kab. Meranti',
-                    'Provinsi Kepulauan Riau',
-                    'Kab. Bintan',
-                    'Kab. Karimun',
-                    'Kab. Natuna',
-                    'Kota Batam',
-                    'Kota Tanjung Pinang',
-                    'Kab. Lingga',
-                    'Kab. Kepulauan Anambas'
-                ] as $ps)
-                    <a href="#"
-                       @click.prevent="selected = '{{ $ps }}'; open = false"
-                       class="block px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
-                       role="menuitem">
-                        {{ $ps }}
-                    </a>
-                @endforeach
-                
+                    <!-- Search input -->
+                    <div class="p-2 border-b border-gray-200">
+                        <input type="text" x-model="search" placeholder="Cari pemegang saham..."
+                            class="w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                    </div>
+        
+                    @php
+                        $orderedPemegangSaham = [
+                            'Provinsi Kepulauan Riau',
+                            'Provinsi Riau',
+                            'Kab. Bengkalis',
+                            'Kab. Bintan',
+                            'Kab. Indragiri Hilir',
+                            'Kab. Indragiri Hulu',
+                            'Kab. Kampar',
+                            'Kab. Karimun',
+                            'Kab. Kepulauan Anambas',
+                            'Kab. Kuansing',
+                            'Kab. Lingga',
+                            'Kab. Meranti',
+                            'Kab. Natuna',
+                            'Kab. Pelalawan',
+                            'Kab. Rokan Hilir',
+                            'Kab. Rokan Hulu',
+                            'Kab. Siak',
+                            'Kota Batam',
+                            'Kota Dumai',
+                            'Kota Pekanbaru',
+                            'Kota Tanjung Pinang'
+                        ];
+                    @endphp
+        
+                    @foreach($orderedPemegangSaham as $ps)
+                        <a href="#"
+                           @click.prevent="selected = '{{ $ps }}'; open = false"
+                           x-show="search === '' || '{{ strtolower($ps) }}'.includes(search.toLowerCase())"
+                           class="block px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                           role="menuitem">
+                            {{ $ps }}
+                        </a>
+                    @endforeach
                 </div>
             </div>
         </div>
+        
    
 
         

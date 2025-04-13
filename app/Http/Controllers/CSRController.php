@@ -513,10 +513,44 @@ public function riwayatCsr(Request $request)
     $tahun = $request->input('tahun', date('Y'));
     $pemegangSaham = $request->input('pemegang_saham', 'semua');
 
-    $semuaPemegangSaham = \App\Models\AnggaranCsr::select('pemegang_saham')->distinct()->pluck('pemegang_saham');
-    $riwayatPerSaham = $this->ambilRiwayatCsr($tahun, $pemegangSaham);
+    $urutanSaham = [
+        'Provinsi Kepulauan Riau',
+        'Provinsi Riau',
+        'Kab. Bengkalis',
+        'Kab. Bintan',
+        'Kab. Indragiri Hilir',
+        'Kab. Indragiri Hulu',
+        'Kab. Kampar',
+        'Kab. Karimun',
+        'Kab. Kepulauan Anambas',
+        'Kab. Kuansing',
+        'Kab. Lingga',
+        'Kab. Meranti',
+        'Kab. Natuna',
+        'Kab. Pelalawan',
+        'Kab. Rokan Hilir',
+        'Kab. Rokan Hulu',
+        'Kab. Siak',
+        'Kota Batam',
+        'Kota Dumai',
+        'Kota Pekanbaru',
+        'Kota Tanjung Pinang'
+    ];
+    
+    $semuaPemegangSaham = \App\Models\AnggaranCsr::select('pemegang_saham')
+        ->distinct()
+        ->pluck('pemegang_saham')
+        ->filter() // buang null/null string
+        ->unique()
+        ->sortBy(function ($item) use ($urutanSaham) {
+            return array_search($item, $urutanSaham) !== false ? array_search($item, $urutanSaham) : PHP_INT_MAX;
+        })
+        ->values();
+
+        $riwayatPerSaham = $this->ambilRiwayatCsr($tahun, $pemegangSaham);
 
     $daftarTahun = \App\Models\AnggaranCsr::select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun');
+    
 
     return view('csr.riwayat', compact('riwayatPerSaham', 'tahun', 'pemegangSaham', 'semuaPemegangSaham', 'daftarTahun'));
 }
@@ -615,6 +649,7 @@ protected function ambilRiwayatCsr($tahun, $pemegangSaham)
             'detail' => [
                 'sisa_tahun_lalu' => $totalSisaTahunLalu,
                 'penambahan_tahun_ini' => $totalPenambahan,
+                'total_realisasi_tahun_ini' => $totalRealisasi, 
                 'bulan_realisasi' => $dataBulan,
                 'sisa_akhir_tahun' => $sisaAkhirTahun,
             ]
@@ -650,6 +685,8 @@ protected function ambilRiwayatCsr($tahun, $pemegangSaham)
             'detail' => $anggaran->getDetailRiwayatCsr(),
         ];
     }
+
+    
 
     return $riwayatPerSaham;
 }

@@ -12,7 +12,8 @@
       </tr>
     </thead>
 
-    <tbody class="divide-y divide-gray-200 *:even:bg-gray-50 *:text-gray-900 *:first:font-medium *:align-top">      @foreach ($anggaran as $row)
+    <tbody class="divide-y divide-gray-200 *:even:bg-gray-50 *:text-gray-900 *:first:font-medium *:align-top">      
+      @foreach ($anggaran as $row)
 
         <tr class="*:text-gray-900 *:first:font-medium">
           <td class="px-3 py-2 align-top">{{ $loop->iteration }}</td>

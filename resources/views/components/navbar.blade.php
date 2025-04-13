@@ -16,15 +16,15 @@
               </li>
   
               <li>
-                <a class="text-gray-500 transition hover:text-gray-500/75" href="{{ route("csr.create") }}"> Program CSR </a>
+                <a class="text-gray-500 transition hover:text-gray-500/75" href="{{ route("csr.create") }}"> Tambah Program Kemitaraan </a>
               </li>
   
               <li>
-                <a class="text-gray-500 transition hover:text-gray-500/75" href="{{ route("anggaran.index") }}"> Anggaran CSR </a>
+                <a class="text-gray-500 transition hover:text-gray-500/75" href="{{ route("anggaran.index") }}"> Anggaran Kemitaraan </a>
               </li>
               
               <li>
-                <a class="text-gray-500 transition hover:text-gray-500/75" href="{{ route("csr.riwayat") }}"> Riwayat CSR </a>
+                <a class="text-gray-500 transition hover:text-gray-500/75" href="{{ route("csr.riwayat") }}"> Riwayat Kemitaraan </a>
               </li>
 
               <li>

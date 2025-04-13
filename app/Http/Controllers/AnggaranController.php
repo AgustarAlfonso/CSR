@@ -81,9 +81,69 @@ class AnggaranController extends Controller
         }
         $daftarTahun = $daftarTahun->sort()->values();
     
-        $daftarPemegangSaham = AnggaranCsr::select('pemegang_saham')->distinct()->pluck('pemegang_saham');
-    
-        return view('anggaran.index', compact(
+        $desiredOrder = [
+            'Provinsi Kepulauan Riau',
+            'Provinsi Riau',
+            'Kab. Bengkalis',
+            'Kab. Bintan',
+            'Kab. Indragiri Hilir',
+            'Kab. Indragiri Hulu',
+            'Kab. Kampar',
+            'Kab. Karimun',
+            'Kab. Kepulauan Anambas',
+            'Kab. Kuansing',
+            'Kab. Lingga',
+            'Kab. Meranti',
+            'Kab. Natuna',
+            'Kab. Pelalawan',
+            'Kab. Rokan Hilir',
+            'Kab. Rokan Hulu',
+            'Kab. Siak',
+            'Kota Batam',
+            'Kota Dumai',
+            'Kota Pekanbaru',
+            'Kota Tanjung Pinang',
+        ];
+        
+        $daftarPemegangSaham = AnggaranCsr::select('pemegang_saham')
+            ->distinct()
+            ->pluck('pemegang_saham')
+            ->filter() // Buat jaga-jaga kalau ada null
+            ->sortBy(function($item) use ($desiredOrder) {
+                return array_search($item, $desiredOrder);
+            })
+            ->values();
+
+            $customOrder = [
+                'Provinsi Kepulauan Riau',
+                'Provinsi Riau',
+                'Kab. Bengkalis',
+                'Kab. Bintan',
+                'Kab. Indragiri Hilir',
+                'Kab. Indragiri Hulu',
+                'Kab. Kampar',
+                'Kab. Karimun',
+                'Kab. Kepulauan Anambas',
+                'Kab. Kuansing',
+                'Kab. Lingga',
+                'Kab. Meranti',
+                'Kab. Natuna',
+                'Kab. Pelalawan',
+                'Kab. Rokan Hilir',
+                'Kab. Rokan Hulu',
+                'Kab. Siak',
+                'Kota Batam',
+                'Kota Dumai',
+                'Kota Pekanbaru',
+                'Kota Tanjung Pinang',
+            ];
+            
+            $anggaran = $anggaran->sortBy(function ($item) use ($customOrder) {
+                $index = array_search($item->pemegang_saham, $customOrder);
+                return $index === false ? PHP_INT_MAX : $index;
+            })->values(); 
+
+            return view('anggaran.index', compact(
             'anggaran',
             'totalAnggaran',
             'daftarTahun',

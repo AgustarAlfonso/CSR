@@ -119,10 +119,28 @@ $defaultTahun = $isEdit ? $csr->tahun : '';
                         pemegang_saham: '{{ $defaultPemegangSaham }}', 
                         search: '', 
                         daftar: @js([
-                            'Kab. Kepulauan Anambas','Kab. Indragiri Hulu','Kota Batam','Kab. Indragiri Hilir','Provinsi Riau','Kab. Kampar','Kab. Bintan',
-                            'Kab. Bengkalis','Kab. Rokan Hilir','Kab. Meranti','Kab. Natuna','Kab. Siak','Kab. Pelalawan','Kota Dumai','Kota Pekanbaru',
-                            'Provinsi Kepulauan Riau','Kab. Rokan Hulu','Kab. Lingga','Kab. Karimun','Kota Tanjung Pinang','Kab. Kuansing'
-                        ])
+                    'Provinsi Kepulauan Riau',
+                    'Provinsi Riau',
+                    'Kab. Bengkalis',
+                    'Kab. Bintan',
+                    'Kab. Indragiri Hilir',
+                    'Kab. Indragiri Hulu',
+                    'Kab. Kampar',
+                    'Kab. Karimun',
+                    'Kab. Kepulauan Anambas',
+                    'Kab. Kuansing',
+                    'Kab. Lingga',
+                    'Kab. Meranti',
+                    'Kab. Natuna',
+                    'Kab. Pelalawan',
+                    'Kab. Rokan Hilir',
+                    'Kab. Rokan Hulu',
+                    'Kab. Siak',
+                    'Kota Batam',
+                    'Kota Dumai',
+                    'Kota Pekanbaru',
+                    'Kota Tanjung Pinang'
+                ])
                      }">
             
                     <div class="relative inline-flex w-full">
