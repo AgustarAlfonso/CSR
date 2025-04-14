@@ -203,8 +203,14 @@ class CsrController extends Controller
 
     public function create(Request $request)
     {
-        $availableYears = \App\Models\AnggaranCsr::select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun');
-    
+        $availableYears = \App\Models\AnggaranCsr::select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun')->toArray();
+
+        $currentYear = now()->year;
+        
+        if (!in_array($currentYear, $availableYears)) {
+            $availableYears[] = $currentYear;
+            rsort($availableYears); // biar tetap urut dari terbesar
+        }    
         $pemegangSaham = $request->pemegang_saham ?? null;
         $tahun = $request->tahun ?? now()->year;
         $sisaAnggaran = null;
@@ -327,8 +333,14 @@ class CsrController extends Controller
     
 public function edit(Request $request, \App\Models\Csr $csr)
 {
-    $availableYears = \App\Models\AnggaranCsr::select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun');
+    $availableYears = \App\Models\AnggaranCsr::select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun')->toArray();
 
+    $currentYear = now()->year;
+    
+    if (!in_array($currentYear, $availableYears)) {
+        $availableYears[] = $currentYear;
+        rsort($availableYears); // biar tetap urut dari terbesar
+    }
     $pemegangSaham = $csr->pemegang_saham;
     $tahun = $csr->tahun;
     $sisaAnggaran = null;
@@ -467,12 +479,10 @@ public function getSisaAnggaran(Request $request)
     $tahun = $request->tahun;
     $isFallback = false;
 
-    // Ambil anggaran CSR berdasarkan pemegang saham dan tahun
     $anggaran = \App\Models\AnggaranCsr::where('pemegang_saham', $pemegangSaham)
                 ->where('tahun', $tahun)
                 ->first();
 
-    // Kalau tidak ada, fallback ke tahun sebelumnya
     if (!$anggaran) {
         $anggaran = \App\Models\AnggaranCsr::where('pemegang_saham', $pemegangSaham)
                     ->where('tahun', '<', $tahun)
@@ -490,13 +500,15 @@ public function getSisaAnggaran(Request $request)
         $isFallback = true;
     }
 
-    // Set tahun agar method model tahu realisasi tahun berapa yang dihitung
-    $anggaran->tahun = $tahun;
+    // Hanya set tahun jika BUKAN fallback
+    if (!$isFallback) {
+        $anggaran->tahun = $tahun;
+    }
 
     return response()->json([
         'sisa' => $anggaran->getSisaAnggaranTampilan(),
         'jumlah_anggaran' => $anggaran->jumlah_anggaran,
-        'realisasi_csr' => \App\Models\Csr::where('pemegang_saham', $pemegangSaham)->where('tahun', $tahun)->sum('realisasi_csr'),
+        'realisasi_csr' => \App\Models\Csr::where('pemegang_saham', $pemegangSaham)->where('tahun', $isFallback ? $anggaran->tahun : $tahun)->sum('realisasi_csr'),
         'message' => $isFallback 
             ? 'Sisa anggaran diambil dari tahun sebelumnya: ' . $anggaran->tahun
             : 'Sisa anggaran berhasil diambil.',
@@ -504,6 +516,7 @@ public function getSisaAnggaran(Request $request)
         'tahun_anggaran' => $anggaran->tahun
     ]);
 }
+
 
 
 

@@ -62,6 +62,13 @@ class AnggaranCsr extends Model
     return $result;
 }
 
+
+    
+public function penambahan()
+{
+    return $this->hasOne(PenambahanAnggaran::class, 'anggaran_csr_id');
+}
+
 public function hitungSisaAnggaranTotal()
 {
     // Ambil total realisasi CSR dari program yang match dengan pemegang saham dan tahun
@@ -71,11 +78,6 @@ public function hitungSisaAnggaranTotal()
 
     // Hitung sisa
     return max($this->jumlah_anggaran - $totalRealisasi, 0);
-}
-    
-public function penambahan()
-{
-    return $this->hasOne(PenambahanAnggaran::class, 'anggaran_csr_id');
 }
 
 public function getTotalAnggaranTampilan()
