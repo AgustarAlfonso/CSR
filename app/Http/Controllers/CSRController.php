@@ -510,9 +510,16 @@ public function getSisaAnggaran(Request $request)
 
 public function riwayatCsr(Request $request)
 {
-    $tahun = $request->input('tahun', date('Y'));
+    // Ambil daftar tahun yang tersedia di database, urut dari yang terbaru
+    $daftarTahun = \App\Models\AnggaranCsr::select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun');
+
+    // Ambil tahun dari request, jika tidak ada gunakan tahun terbaru yang tersedia
+    $tahun = $request->input('tahun', $daftarTahun->first());
+
+    // Ambil pemegang saham dari request, default ke "semua"
     $pemegangSaham = $request->input('pemegang_saham', 'semua');
 
+    // Urutan prioritas saham untuk penyortiran
     $urutanSaham = [
         'Provinsi Kepulauan Riau',
         'Provinsi Riau',
@@ -536,7 +543,8 @@ public function riwayatCsr(Request $request)
         'Kota Pekanbaru',
         'Kota Tanjung Pinang'
     ];
-    
+
+    // Ambil daftar pemegang saham unik dan urutkan sesuai prioritas
     $semuaPemegangSaham = \App\Models\AnggaranCsr::select('pemegang_saham')
         ->distinct()
         ->pluck('pemegang_saham')
@@ -547,13 +555,18 @@ public function riwayatCsr(Request $request)
         })
         ->values();
 
-        $riwayatPerSaham = $this->ambilRiwayatCsr($tahun, $pemegangSaham);
+    // Ambil data riwayat CSR
+    $riwayatPerSaham = $this->ambilRiwayatCsr($tahun, $pemegangSaham);
 
-    $daftarTahun = \App\Models\AnggaranCsr::select('tahun')->distinct()->orderByDesc('tahun')->pluck('tahun');
-    
-
-    return view('csr.riwayat', compact('riwayatPerSaham', 'tahun', 'pemegangSaham', 'semuaPemegangSaham', 'daftarTahun'));
+    return view('csr.riwayat', compact(
+        'riwayatPerSaham',
+        'tahun',
+        'pemegangSaham',
+        'semuaPemegangSaham',
+        'daftarTahun'
+    ));
 }
+
 
 public function riwayatCsrAjax(Request $request)
 {

@@ -46,18 +46,19 @@ class AnggaranController extends Controller
             $tahunSebelumnya = $tahunFilter - 1;
     
             $fallbacks = AnggaranCsr::whereIn('pemegang_saham', $belumAda)
-                ->where('tahun', $tahunSebelumnya)
-                ->get()
-                ->filter(function ($item) {
-                    return $item->hitungSisaAnggaranTotal() > 0;
-                })
-                ->map(function ($item) use ($tahunFilter) {
-                    $clone = clone $item;
-                    $clone->tahun = $tahunFilter;
-                    $clone->jumlah_anggaran = $item->hitungSisaAnggaranTotal();
-                    $clone->sisa_dari_tahun_lalu = true;
-                    return $clone;
-                });
+            ->where('tahun', $tahunSebelumnya)
+            ->get()
+            ->filter(function ($item) {
+                return $item->getSisaAnggaranTampilan() > 0;
+            })
+            ->map(function ($item) use ($tahunFilter) {
+                $clone = clone $item;
+                $clone->tahun = $tahunFilter;
+                $clone->jumlah_anggaran = $item->hitungSisaAnggaranTotal(); // ← PENTING!
+                                $clone->sisa_dari_tahun_lalu = true;
+                return $clone;
+            });
+        
     
             if ($fallbacks->isNotEmpty()) {
                 $fallback = true;
@@ -143,6 +144,8 @@ class AnggaranController extends Controller
                 return $index === false ? PHP_INT_MAX : $index;
             })->values(); 
 
+            
+
             return view('anggaran.index', compact(
             'anggaran',
             'totalAnggaran',
@@ -152,13 +155,7 @@ class AnggaranController extends Controller
             'fallback'
         ));
     }
-    
-    
-
-
-    
-    
-    
+     
 
     public function create()
     {

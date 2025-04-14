@@ -20,7 +20,7 @@
           <td class="px-3 py-2 align-top">
             {{ $row->pemegang_saham }}
             @if (!empty($row->sisa_dari_tahun_lalu))
-                <small class="text-red-500 block italic">* memakai sisa anggaran {{ $tahunFilter - 1 }}</small>
+                <small class="text-red-500 block italic">* memakai sisa anggaran terdahulu</small>
             @endif
         </td>
         <td class="px-3 py-2 align-top">{{ $row->tahun }}</td>
