@@ -39,6 +39,7 @@ class AnggaranCsr extends Model
     if ($filterBidangKegiatan) {
         $filteredRealisasiData->whereIn('bidang_kegiatan', (array) $filterBidangKegiatan);
     }
+    
 
     $filteredRealisasiData = $filteredRealisasiData->orderBy('bulan')->get()->groupBy('bulan');
 

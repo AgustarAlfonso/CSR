@@ -48,20 +48,20 @@ class CsrController extends Controller
         // Tambahkan data fallback dari tahun sebelumnya jika belum ada
         if (!empty($sahamYangBelumAda)) {
             $tahunSebelumnya = $tahunFilter - 1;
-    
-            $fallbacks = AnggaranCsr::where('tahun', $tahunSebelumnya)
-                ->whereIn('pemegang_saham', $sahamYangBelumAda)
-                ->get()
-                ->filter(function ($item) {
-                    return $item->hitungSisaAnggaranTotal() > 0;
-                })
-                ->map(function ($item) use ($tahunFilter) {
-                    $clone = clone $item;
-                    $clone->tahun = $tahunFilter;
-                    $clone->jumlah_anggaran = $item->hitungSisaAnggaranTotal();
-                    $clone->sisa_dari_tahun_lalu = true;
-                    return $clone;
-                });
+            $fallbacks = AnggaranCsr::whereIn('pemegang_saham', $sahamYangBelumAda)
+            ->where('tahun', $tahunSebelumnya)
+            ->get()
+            ->filter(function ($item) {
+                return $item->getSisaAnggaranTampilan() > 0;
+            })
+            ->map(function ($item) use ($tahunFilter) {
+                $sisa = $item->getSisaAnggaranTampilan(); // Ambil sekali saja
+                $clone = clone $item;
+                $clone->tahun = $tahunFilter;
+                $clone->jumlah_anggaran = $sisa; // Gunakan hasil yang udah fix
+                $clone->sisa_dari_tahun_lalu = true;
+                return $clone;
+            });
     
             $anggaranList = $anggaranList->concat($fallbacks);
         }
