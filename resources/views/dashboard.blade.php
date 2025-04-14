@@ -72,14 +72,19 @@
                 </div>
                 <div class="mb-3">
                     <label for="tahun" class="form-label">Tahun</label>
-                    <select id="tahun" class="form-select">
+                    <select id="tahun" class="form-select" name="tahun">
+                        @php
+                            // Mengambil tahun terbaru dari koleksi $years
+                            $latestYear = $years->max(); // atau: max($years->toArray());
+                        @endphp
                         @foreach($years as $year)
-                            <option value="{{ $year }}" {{ $year == now()->year ? 'selected' : '' }}>
+                            <option value="{{ $year }}" {{ $year == $latestYear ? 'selected' : '' }}>
                                 {{ $year }}
                             </option>
                         @endforeach
                     </select>
                 </div>
+                
                 
 
                 @php

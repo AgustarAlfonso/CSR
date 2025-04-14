@@ -52,10 +52,11 @@ class AnggaranController extends Controller
                 return $item->getSisaAnggaranTampilan() > 0;
             })
             ->map(function ($item) use ($tahunFilter) {
+                $sisa = $item->getSisaAnggaranTampilan(); // Ambil sekali saja
                 $clone = clone $item;
                 $clone->tahun = $tahunFilter;
-                $clone->jumlah_anggaran = $item->hitungSisaAnggaranTotal(); // ← PENTING!
-                                $clone->sisa_dari_tahun_lalu = true;
+                $clone->jumlah_anggaran = $sisa; // Gunakan hasil yang udah fix
+                $clone->sisa_dari_tahun_lalu = true;
                 return $clone;
             });
         

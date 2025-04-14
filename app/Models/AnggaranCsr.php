@@ -86,6 +86,11 @@ public function getTotalAnggaranTampilan()
         return $this->total_anggaran_tampilan;
     }
 
+    // 🛑 Tambahkan pengecekan kalau data ini fallback
+    if (isset($this->sisa_dari_tahun_lalu) && $this->sisa_dari_tahun_lalu) {
+        return $this->jumlah_anggaran;
+    }
+
     $tahunSebelumnya = self::where('pemegang_saham', $this->pemegang_saham)
         ->where('tahun', $this->tahun - 1)
         ->first();
@@ -100,15 +105,11 @@ public function getTotalAnggaranTampilan()
             ->sum('realisasi_csr');
 
         $sisaTahunLalu = $totalAnggaranTahunLalu - $realisasiTahunLalu;
-        // Ini bisa positif (sisa) atau negatif (hutang), dan kita biarin supaya kebawa ke tahun ini
     }
 
-    // Total = anggaran tahun ini + sisa/hutang tahun lalu
-    $total = $this->jumlah_anggaran + $sisaTahunLalu;
-
-    // Pastikan gak minus kalau logikamu mau gitu, tapi dari penjelasanmu, minus BOLEH dibawa
-    return $total;
+    return $this->jumlah_anggaran + $sisaTahunLalu;
 }
+
 
 
 

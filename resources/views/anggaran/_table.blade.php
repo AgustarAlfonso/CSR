@@ -124,12 +124,12 @@
       <tr>
         <td colspan="5" class="px-3 py-2 text-right">Total Sisa Anggaran:</td>
         <td class="px-3 py-2 text-red-600">
-          Rp{{ number_format($anggaran->sum(fn($row) => $row->sisa_anggaran_tampilan ?? $row->hitungSisaAnggaranTotal()), 0, ',', '.') }}
-      </td>
-      
+          Rp{{ number_format($anggaran->sum('sisa_anggaran_tampilan'), 0, ',', '.') }}
+        </td>
         <td></td>
       </tr>
     </tfoot>
+    
     @if ($fallback)
     <div class="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 p-4 mb-4">
         <p class="font-semibold">Catatan:</p>
