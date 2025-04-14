@@ -90,9 +90,33 @@ class CsrController extends Controller
     
         $totalRealisasi = array_sum(array_column($result, 'realisasi'));
     
-        $sisaCsr = $anggaranList->sum(function ($item) {
-            return $item->getSisaAnggaranTampilan();
-        });
+        if (!empty($request->bulan)) {
+            $sisaCsr = array_sum(array_column($result, 'sisa_anggaran'));
+        } else {
+            $sisaCsr = $anggaranList->sum(function ($item) {
+                return $item->getSisaAnggaranTampilan();
+            });
+        }
+
+        if (!empty($request->bulan)) {
+            $bulan = (int) $request->bulan;
+        
+            $totalAnggaran = array_sum(array_map(function ($item) use ($bulan) {
+                $perBulan = $item->getSisaAnggaranPerBulan();
+                return $perBulan[$bulan - 1]['sisa_anggaran'] ?? $item->getTotalAnggaranTampilan();
+            }, $anggaranList->all()));
+        
+            $sisaCsr = array_sum(array_column($result, 'sisa_anggaran'));
+        } else {
+            $totalAnggaran = $anggaranList->sum(function ($item) {
+                return $item->getTotalAnggaranTampilan();
+            });
+        
+            $sisaCsr = $anggaranList->sum(function ($item) {
+                return $item->getSisaAnggaranTampilan();
+            });
+        }
+        
     
         return response()->json([
             'jumlah_anggaran' => $totalAnggaran,

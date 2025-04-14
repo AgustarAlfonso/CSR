@@ -23,27 +23,24 @@ class AnggaranCsr extends Model
                     ->where('tahun', $this->tahun);
     }
 
-    public function getSisaAnggaranPerBulan($filterBidangKegiatan = null)
+public function getSisaAnggaranPerBulan($filterBidangKegiatan = null)
 {
-    // Ambil semua realisasi (tanpa filter) untuk menghitung sisa kronologis
     $allRealisasiData = Csr::where('pemegang_saham', $this->pemegang_saham)
         ->where('tahun', $this->tahun)
         ->orderBy('bulan')
         ->get()
         ->groupBy('bulan');
 
-    // Ambil realisasi hanya dari bidang yang difilter untuk laporan tampil
     $filteredRealisasiData = Csr::where('pemegang_saham', $this->pemegang_saham)
         ->where('tahun', $this->tahun);
 
     if ($filterBidangKegiatan) {
         $filteredRealisasiData->whereIn('bidang_kegiatan', (array) $filterBidangKegiatan);
     }
-    
 
     $filteredRealisasiData = $filteredRealisasiData->orderBy('bulan')->get()->groupBy('bulan');
 
-    $sisaAnggaran = $this->jumlah_anggaran;
+    $sisaAnggaran = $this->getTotalAnggaranTampilan();
     $result = [];
 
     for ($bulan = 1; $bulan <= 12; $bulan++) {
@@ -52,16 +49,19 @@ class AnggaranCsr extends Model
 
         $result[$bulan] = [
             'bulan' => $bulan,
-            'total_anggaran' => $sisaAnggaran,
+            'total_anggaran' => $sisaAnggaran, // total pada titik bulan ini
             'realisasi' => $realisasiTerfilter,
             'sisa_anggaran' => max($sisaAnggaran - $realisasiTerfilter, 0)
         ];
 
+        // Update sisaAnggaran untuk bulan berikutnya
         $sisaAnggaran = max($sisaAnggaran - $realisasiSemuaBidang, 0);
     }
 
     return $result;
 }
+
+
 
 
     
