@@ -524,15 +524,24 @@ public function getSisaAnggaran(Request $request)
         $isFallback = true;
     }
 
-    // Hanya set tahun jika BUKAN fallback
-    if (!$isFallback) {
-        $anggaran->tahun = $tahun;
+    // Ambil realisasi sesuai tahun yang diminta (bukan tahun anggaran fallback)
+    $realisasiTahunIni = \App\Models\Csr::where('pemegang_saham', $pemegangSaham)
+                            ->where('tahun', $tahun)
+                            ->sum('realisasi_csr');
+
+    $jumlahAnggaran = $anggaran->jumlah_anggaran;
+
+    $sisa = $anggaran->getSisaAnggaranTampilan();
+
+    if ($isFallback) {
+        // Hitung ulang sisa: sisa dari tahun sebelumnya - realisasi tahun sekarang
+        $sisa = max(0, $sisa - $realisasiTahunIni);
     }
 
     return response()->json([
-        'sisa' => $anggaran->getSisaAnggaranTampilan(),
-        'jumlah_anggaran' => $anggaran->jumlah_anggaran,
-        'realisasi_csr' => \App\Models\Csr::where('pemegang_saham', $pemegangSaham)->where('tahun', $isFallback ? $anggaran->tahun : $tahun)->sum('realisasi_csr'),
+        'sisa' => $sisa,
+        'jumlah_anggaran' => $jumlahAnggaran,
+        'realisasi_csr' => $realisasiTahunIni,
         'message' => $isFallback 
             ? 'Sisa anggaran diambil dari tahun sebelumnya: ' . $anggaran->tahun
             : 'Sisa anggaran berhasil diambil.',
@@ -540,6 +549,7 @@ public function getSisaAnggaran(Request $request)
         'tahun_anggaran' => $anggaran->tahun
     ]);
 }
+
 
 
 
