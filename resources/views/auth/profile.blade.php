@@ -1,99 +1,121 @@
 @extends('layouts.master')
 
 @section('content')
-<div class="max-w-6xl mx-auto mt-10 p-6 bg-gray-100 rounded-lg shadow-inner grid grid-cols-1 md:grid-cols-2 gap-10">
+<div class="max-w-6xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow-xl grid grid-cols-1 md:grid-cols-2 gap-12 transition-all duration-300">
 
-    {{-- KIRI - User Info --}}
-    <div class="flex flex-col items-center md:items-start text-center md:text-left space-y-4">
-        {{-- Avatar --}}
-        <div class="w-32 h-32 rounded-full bg-blue-200 text-blue-800 flex items-center justify-center text-5xl font-bold shadow-md">
+{{-- KIRI - Info User --}}
+<div class="space-y-6">
+    <div class="flex items-center gap-4">
+        <div class="w-16 h-16 bg-blue-100 text-blue-600 flex items-center justify-center rounded-full text-3xl font-bold">
             {{ strtoupper(substr($user->name, 0, 1)) }}
         </div>
-
         <div>
-            <h2 class="text-3xl font-bold text-gray-800">Halo, <span class="text-blue-600">{{ $user->name }}</span> 👋</h2>
-            <p class="text-gray-600 mt-1">Selamat datang kembali di halaman profilmu.</p>
-        </div>
-
-        <div class="mt-4 p-4 w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-            <p class="font-semibold text-gray-700">Peran:</p>
-            <p class="text-blue-700 mt-1">
-                @if ($user->isSuperadmin())
-                    👑 Superadmin
-                @elseif ($user->isAdmin())
-                    🛠️ Admin
-                @else
-                    👤 Pengguna
-                @endif
-            </p>
+            <h2 class="text-2xl font-bold text-gray-900">Halo, {{ $user->name }} 👋</h2>
+            <p class="text-sm text-gray-500">Senang melihatmu kembali! Kelola informasi akunmu dengan mudah di sini.</p>
         </div>
     </div>
 
-    {{-- KANAN - Edit Form --}}
-    <div class="space-y-6">
-        {{-- Edit Info --}}
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">📝 Edit Informasi</h3>
+    <div class="bg-gradient-to-r from-blue-100 to-blue-50 border border-blue-200 rounded-xl p-6 shadow-sm space-y-3">
+        <div class="flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M5.121 17.804A13.937 13.937 0 0112 15c2.21 0 4.29.537 6.121 1.488M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span class="text-gray-700 font-medium">Nama Pengguna:</span>
+        </div>
+        <p class="text-lg text-gray-900 font-semibold">{{ $user->name }}</p>
+
+        <div class="flex items-center gap-2 mt-4">
+            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M16 12A4 4 0 118 12a4 4 0 018 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 14v4m0 0h4m-4 0H8" />
+            </svg>
+            <span class="text-gray-700 font-medium">Peran:</span>
+        </div>
+        <p class="text-blue-700 text-lg mt-1 font-semibold">
+            @if ($user->isSuperadmin())
+                👑 Superadmin
+            @elseif ($user->isAdmin())
+                🛠️ Admin
+            @else
+                👤 Pengguna
+            @endif
+        </p>
+    </div>
+
+    <div class="text-sm text-gray-400 pt-2">
+        Terakhir diperbarui: {{ $user->updated_at->diffForHumans() }}
+    </div>
+</div>
+
+
+    {{-- KANAN - Form Edit --}}
+    <div class="space-y-10">
+
+        {{-- Form Edit Profil --}}
+        <div class="space-y-6">
+            <h3 class="text-2xl font-semibold text-gray-800 border-b pb-3">Edit Profil</h3>
 
             {{-- Nama --}}
-            <div class="mb-4">
+            <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
                 <div class="relative">
-                    <input type="text" id="nameInput" class="peer w-full border-gray-300 rounded px-4 py-2 pr-10 transition focus:outline-none focus:ring focus:border-blue-300" value="{{ $user->name }}" disabled>
-                    <button onclick="enableEdit('nameInput')" class="absolute right-2 top-2 text-blue-500 hover:text-blue-700">
-                        <i class="fas fa-pen"></i>
+                    <input type="text" id="nameInput" class="w-full border rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-300" value="{{ $user->name }}" disabled>
+                    <button onclick="enableEdit('nameInput')" class="absolute right-2 top-2.5 text-blue-500 hover:text-blue-700 transition">
+                        ✏️
                     </button>
                 </div>
             </div>
 
             {{-- Email --}}
-            <div class="mb-4">
+            <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <div class="relative">
-                    <input type="email" id="emailInput" class="peer w-full border-gray-300 rounded px-4 py-2 pr-10 transition focus:outline-none focus:ring focus:border-blue-300" value="{{ $user->email }}" disabled>
-                    <button onclick="enableEdit('emailInput')" class="absolute right-2 top-2 text-blue-500 hover:text-blue-700">
-                        <i class="fas fa-pen"></i>
+                    <input type="email" id="emailInput" class="w-full border rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-300" value="{{ $user->email }}" disabled>
+                    <button onclick="enableEdit('emailInput')" class="absolute right-2 top-2.5 text-blue-500 hover:text-blue-700 transition">
+                        ✏️
                     </button>
                 </div>
             </div>
 
             {{-- Tombol Simpan --}}
-            <div id="saveProfileWrapper" class="hidden mt-4 text-right">
-                <button onclick="saveProfile()" class="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 transition">
-                    💾 Simpan Perubahan
+            <div id="saveProfileWrapper" class="hidden">
+                <button onclick="saveProfile()" class="bg-green-600 text-white font-semibold px-5 py-2 rounded-lg hover:bg-green-700 transition">
+                    💾 Simpan Profil
                 </button>
             </div>
         </div>
 
-        {{-- Ganti Password --}}
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">🔐 Ganti Password</h3>
+        {{-- Form Ganti Password --}}
+        <div class="border-t pt-6 space-y-6">
+            <h3 class="text-2xl font-semibold text-gray-800 border-b pb-3">Ganti Password</h3>
 
-            <div class="mb-4">
+            <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Password Baru</label>
-                <input type="password" id="newPassword" placeholder="Minimal 6 karakter" class="w-full border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring focus:border-blue-300">
+                <input type="password" id="newPassword" class="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300">
             </div>
 
-            <div class="mb-4">
+            <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password</label>
-                <input type="password" id="confirmPassword" placeholder="Ketik ulang password" class="w-full border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring focus:border-blue-300">
+                <input type="password" id="confirmPassword" class="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-300">
             </div>
 
-            <div class="text-right">
-                <button onclick="changePassword()" class="bg-yellow-500 text-white px-4 py-2 rounded shadow hover:bg-yellow-600 transition">
-                    🔄 Ubah Password
-                </button>
-            </div>
+            <button onclick="changePassword()" class="bg-yellow-600 text-white font-semibold px-5 py-2 rounded-lg hover:bg-yellow-700 transition">
+                🔐 Ubah Password
+            </button>
         </div>
     </div>
 </div>
 
-{{-- Script --}}
 <script>
-    function enableEdit(id) {
-        const input = document.getElementById(id);
+    function enableEdit(inputId) {
+        const input = document.getElementById(inputId);
         input.disabled = false;
-        input.classList.add('border-blue-400', 'ring-1', 'ring-blue-200');
+        input.classList.add('border-blue-400', 'ring-2', 'ring-blue-200');
         document.getElementById('saveProfileWrapper').classList.remove('hidden');
     }
 
@@ -109,13 +131,14 @@
             },
             body: JSON.stringify({ name, email })
         })
-        .then(res => res.json())
+        .then(response => response.json())
         .then(data => {
-            alert(data.message);
+            alert(data.message || 'Profil berhasil diperbarui!');
             document.getElementById('nameInput').disabled = true;
             document.getElementById('emailInput').disabled = true;
             document.getElementById('saveProfileWrapper').classList.add('hidden');
-        });
+        })
+        .catch(() => alert('Terjadi kesalahan saat menyimpan profil.'));
     }
 
     function changePassword() {
@@ -135,12 +158,13 @@
             },
             body: JSON.stringify({ password: newPassword })
         })
-        .then(res => res.json())
-        .then(data => {
+        .then(response => response.json())
+        .then(() => {
             alert('Password berhasil diperbarui!');
             document.getElementById('newPassword').value = '';
             document.getElementById('confirmPassword').value = '';
-        });
+        })
+        .catch(() => alert('Gagal memperbarui password.'));
     }
 </script>
 @endsection
