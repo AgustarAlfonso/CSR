@@ -4,13 +4,17 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CSRController;
 use App\Http\Controllers\AnggaranController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
 
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
 
 Route::post('/', [AuthController::class, 'login']);
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
-Route::get('/kelola-user', [AuthController::class, 'kelolaUser'])->name('auth.kelola')->middleware('auth');
+Route::get('/kelola-user', [AuthController::class, 'kelolaUser'])->name('auth.kelola');
+Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+Route::post('/users', [UserController::class, 'store'])->name('users.store');
+
 Route::get('/profile', [AuthController::class, 'profile'])->name('auth.profile');
 Route::put('/profile', [AuthController::class, 'updateProfile'])->name('auth.profile.update');
 

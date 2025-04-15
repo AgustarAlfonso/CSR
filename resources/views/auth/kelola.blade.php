@@ -2,7 +2,12 @@
 
 @section('content')
 <div class="p-6">
-    <h1 class="text-2xl font-bold mb-4">Kelola User</h1>
+    <div class="flex items-center justify-between mb-4">
+        <h1 class="text-2xl font-bold">Kelola User</h1>
+        <a href="{{ route('users.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow-md transition">
+            + Tambah Akun
+        </a>
+    </div>
 
     <table class="min-w-full divide-y-2 divide-gray-200" id="userTable" data-sort-col="0" data-sort-order="asc">
         <thead class="bg-yellow-200">
