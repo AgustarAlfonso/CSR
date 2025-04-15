@@ -14,6 +14,9 @@ Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/kelola-user', [AuthController::class, 'kelolaUser'])->name('auth.kelola');
 Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
 Route::post('/users', [UserController::class, 'store'])->name('users.store');
+Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
 
 Route::get('/profile', [AuthController::class, 'profile'])->name('auth.profile');
 Route::put('/profile', [AuthController::class, 'updateProfile'])->name('auth.profile.update');

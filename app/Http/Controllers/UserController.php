@@ -32,4 +32,45 @@ class UserController extends Controller
 
         return redirect()->route('auth.kelola')->with('success', 'User berhasil ditambahkan!');
     }
+
+    public function edit(User $user)
+{
+    return view('users.edit', compact('user'));
+}
+
+public function update(Request $request, User $user)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email,' . $user->id,
+        'password' => 'nullable|string|confirmed|min:8',
+        'role' => 'required|in:1,2,3'
+    ]);
+
+    $user->name = $request->name;
+    $user->email = $request->email;
+    $user->role = $request->role;
+
+    if ($request->password) {
+        $user->password = Hash::make($request->password);
+    }
+
+    $user->save();
+
+    return redirect()->route('auth.kelola')->with('success', 'Akun berhasil diperbarui!');
+}
+
+public function destroy($id)
+{
+    $user = User::findOrFail($id);
+
+    // Optional: Tambahkan proteksi agar tidak menghapus diri sendiri atau superadmin
+    if (auth()->user()->id == $user->id) {
+        return redirect()->route('auth.kelola')->with('error', 'Tidak dapat menghapus akun Anda sendiri.');
+    }
+
+    $user->delete();
+
+    return redirect()->route('auth.kelola')->with('success', 'User berhasil dihapus.');
+}
 }
