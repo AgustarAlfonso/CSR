@@ -30,7 +30,9 @@
 <body class="bg-gray-100">
     
     <!-- Navbar -->
+    @if (!Request::is('/'))
     @include('components.navbar')
+    @endif
     
     <!-- Content -->
     <div class="container mx-auto mt-8 p-4 bg-white shadow-md rounded-lg">

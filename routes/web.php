@@ -3,10 +3,17 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CSRController;
 use App\Http\Controllers\AnggaranController;
+use App\Http\Controllers\AuthController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
+
+Route::post('/', [AuthController::class, 'login']);
+Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::get('/kelola-user', [AuthController::class, 'kelolaUser'])->name('auth.kelola')->middleware('auth');
+
+
+
 Route::get('/dashboard', [CsrController::class, 'index'])->name('dashboard');
 Route::post('/csr/filter', [CsrController::class, 'filter'])->name('csr.filter');
 Route::get('/api/realisasi_csr', [CsrController::class, 'getRealisasiCsr']);
