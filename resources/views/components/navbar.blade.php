@@ -28,7 +28,7 @@
               </li>
 
               <li>
-                <a class="text-gray-500 transition hover:text-gray-500/75" href="#"> Profile </a>
+                <a class="text-gray-500 transition hover:text-gray-500/75" href="{{ route("auth.profile") }}"> Profile </a>
               </li>
               @if(auth()->user()->role == 1)
                 <li>

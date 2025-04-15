@@ -53,4 +53,34 @@ class AuthController extends Controller
     return view('auth.kelola', compact('users'));
 }
 
+public function profile()
+{
+    $user = Auth::user();
+    return view('auth.profile', compact('user'));
+}
+
+public function updateProfile(Request $request)
+{
+    $user = Auth::user();
+
+    $rules = [
+        'name' => 'sometimes|required|string|max:255',
+        'email' => 'sometimes|required|email|max:255|unique:users,email,' . $user->id,
+        'password' => 'sometimes|required|min:6|confirmed',
+    ];
+
+    $validated = $request->validate($rules);
+
+    if ($request->has('password')) {
+        $validated['password'] = bcrypt($request->password);
+    }
+
+    $user->update($validated);
+
+    return response()->json([
+        'message' => 'Data profil berhasil diperbarui!',
+        'user' => $user
+    ]);
+}
+
 }

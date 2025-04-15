@@ -11,6 +11,8 @@ Route::post('/', [AuthController::class, 'login']);
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/kelola-user', [AuthController::class, 'kelolaUser'])->name('auth.kelola')->middleware('auth');
+Route::get('/profile', [AuthController::class, 'profile'])->name('auth.profile');
+Route::put('/profile', [AuthController::class, 'updateProfile'])->name('auth.profile.update');
 
 
 
