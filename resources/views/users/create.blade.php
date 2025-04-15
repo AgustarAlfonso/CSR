@@ -43,9 +43,22 @@
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                 placeholder="Minimal 8 karakter">
         </div>
+        <!-- Konfirmasi Password -->
+        <div>
+            <label for="password_confirmation" class="block text-sm font-semibold text-gray-700 mb-1">Konfirmasi Password</label>
+            <input type="password" name="password_confirmation" id="password_confirmation" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                placeholder="Ulangi password di atas">
+        </div>
+
 
         <!-- Role -->
-        <div x-data="{ open: false, selected: '', search: '' }" class="relative mt-3">
+        <div x-data="{
+            open: false,
+            selected: '',
+            selectedLabel: '',
+            search: ''
+        }" class="relative mt-3">
             <label for="role" class="block text-sm font-semibold text-gray-700 mb-1">Role</label>
         
             <div class="relative inline-flex w-full">
@@ -54,7 +67,7 @@
                         type="button"
                         @click="open = !open"
                         class="flex-1 px-3 py-2 text-sm font-medium text-gray-700 text-left transition-colors hover:bg-gray-50 hover:text-gray-900 focus:relative"
-                        x-text="selected || '-- Pilih Role --'"
+                        x-text="selectedLabel || '-- Pilih Role --'"
                     ></button>
         
                     <button
@@ -70,6 +83,7 @@
                     </button>
                 </span>
         
+                <!-- hidden input yang dikirim ke backend -->
                 <input type="hidden" name="role" :value="selected" required>
         
                 <div
@@ -95,7 +109,7 @@
         
                     @foreach($roles as $value => $label)
                         <a href="#"
-                           @click.prevent="selected = '{{ $value }}'; open = false"
+                           @click.prevent="selected = '{{ $value }}'; selectedLabel = '{{ $label }}'; open = false"
                            x-show="search === '' || '{{ strtolower($label) }}'.includes(search.toLowerCase())"
                            class="block px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
                            role="menuitem">
@@ -105,6 +119,7 @@
                 </div>
             </div>
         </div>
+        
         
 
         <!-- Actions -->
