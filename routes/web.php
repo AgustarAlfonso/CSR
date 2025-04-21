@@ -20,7 +20,7 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
 
     Route::prefix('csr')->name('csr.')->group(function () {
         Route::get('/riwayat', [CSRController::class, 'riwayatCsr'])->name('riwayat');
-        Route::get('/riwayat/ajax', [CSRController::class, 'riwayat.ajax'])->name('riwayat.ajax');
+        Route::get('/riwayat/ajax', [CSRController::class, 'riwayatCsrAjax'])->name('riwayat.ajax');
         Route::post('/filter', [CSRController::class, 'filter'])->name('filter');
         Route::post('/chart/bidang-kegiatan', [CSRController::class, 'chartByBidangKegiatan'])->name('chart.bidang_kegiatan');
     });
@@ -28,7 +28,7 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
     Route::get('/dashboard', [CSRController::class, 'index'])->name('dashboard');
     Route::get('/api/realisasi_csr', [CSRController::class, 'getRealisasiCsr'])->name('api.realisasi_csr');
     Route::get('/hasil-filter', [CSRController::class, 'hasilFilter'])->name('csr.hasil_filter');
-    Route::get('/sisa-anggaran', [CSRController::class, 'getSisaAnggaran'])->name('csr.sisa_anggaran');
+    Route::get('/sisa-anggaran', [CSRController::class, 'getSisaAnggaran'])->name('csr.sisa-anggaran');
 });
 
 // Route untuk role 1 dan 2 (contoh: Kelola CSR)
