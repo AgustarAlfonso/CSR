@@ -14,9 +14,8 @@ Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 // Error Pages
 Route::view('/errors/403', 'errors.403');
 
-// Route untuk role 1 dan 2 (contoh: Kelola CSR + Anggaran)
+// Route untuk role 1 dan 2 (contoh: Kelola CSR)
 Route::middleware(['auth', 'role:1,2'])->group(function () {
-    // CSR
     Route::prefix('csr')->name('csr.')->group(function () {
         Route::get('/create', [CSRController::class, 'create'])->name('create');
         Route::post('/store', [CSRController::class, 'store'])->name('store');
@@ -24,12 +23,9 @@ Route::middleware(['auth', 'role:1,2'])->group(function () {
         Route::post('/{csr}', [CSRController::class, 'update'])->name('update');
         Route::delete('/{csr}', [CSRController::class, 'destroy'])->name('destroy');
     });
-
-    // Anggaran
-    Route::resource('anggaran', AnggaranController::class)->names('anggaran');
 });
 
-// Route untuk role 1, 2, 3 (akses umum)
+// Route untuk role 1, 2, 3 (contoh: Semua akses umum)
 Route::middleware(['auth', 'role:1,2,3'])->group(function () {
     Route::get('/profile', [AuthController::class, 'profile'])->name('auth.profile');
     Route::put('/profile', [AuthController::class, 'updateProfile'])->name('auth.profile.update');
@@ -47,7 +43,7 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
     Route::get('/sisa-anggaran', [CSRController::class, 'getSisaAnggaran'])->name('csr.sisa_anggaran');
 });
 
-// Route untuk role 1 aja (Kelola User)
+// Route untuk role 1 aja (contoh: Kelola User)
 Route::middleware(['auth', 'role:1'])->group(function () {
     Route::get('/kelola-user', [AuthController::class, 'kelolaUser'])->name('auth.kelola');
 
@@ -59,3 +55,21 @@ Route::middleware(['auth', 'role:1'])->group(function () {
         Route::delete('/{id}', [UserController::class, 'destroy'])->name('destroy');
     });
 });
+
+// Route Anggaran (tanpa auth/middleware khusus)
+// Route Anggaran: index (1,2,3) & lainnya (1,2)
+Route::middleware(['auth', 'role:1,2,3'])->group(function () {
+    Route::get('/anggaran', [AnggaranController::class, 'index'])->name('anggaran.index');
+});
+
+Route::middleware(['auth', 'role:1,2'])->group(function () {
+    Route::prefix('anggaran')->name('anggaran.')->group(function () {
+        Route::get('/create', [AnggaranController::class, 'create'])->name('create');
+        Route::post('/', [AnggaranController::class, 'store'])->name('store');
+        Route::get('/{anggaran}/edit', [AnggaranController::class, 'edit'])->name('edit');
+        Route::put('/{anggaran}', [AnggaranController::class, 'update'])->name('update');
+        Route::delete('/{anggaran}', [AnggaranController::class, 'destroy'])->name('destroy');
+        Route::get('/{anggaran}', [AnggaranController::class, 'show'])->name('show');
+    });
+});
+
