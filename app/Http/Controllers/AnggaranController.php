@@ -221,7 +221,7 @@ class AnggaranController extends Controller
             ->where('tahun', $tahunSebelumnya)
             ->first();
     
-        $sisaTahunLalu = $anggaranTahunLalu ? $anggaranTahunLalu->hitungSisaAnggaranTotal() : 0;
+$sisaTahunLalu = $anggaranTahunLalu ? $anggaranTahunLalu->getSisaAnggaranTampilan() : 0;
         $totalTahunIni = $jumlahBaru + $sisaTahunLalu;
     
         // Kirim ke tampilan modal konfirmasi
