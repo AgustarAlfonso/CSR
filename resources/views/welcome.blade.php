@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login CSR</title>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
         <style>
         body {
@@ -48,6 +50,22 @@
             </button>
         </form>
     </div>
+    <div
+    x-data="{ showModal: {{ $errors->any() ? 'true' : 'false' }} }"
+    x-show="showModal"
+    x-transition
+    class="fixed inset-0 flex items-center justify-center bg-black/50 z-50"
+>
+    <div class="bg-white text-gray-800 rounded-xl p-6 w-full max-w-sm shadow-lg relative">
+        <button @click="showModal = false" class="absolute top-2 right-3 text-gray-600 hover:text-red-600">
+            &times;
+        </button>
+        <h2 class="text-xl font-semibold mb-2">Login Gagal</h2>
+        <p class="text-sm">
+            {{ $errors->first() }}
+        </p>
+    </div>
+</div>
 
 </body>
 </html>
