@@ -46,16 +46,20 @@
     <h3 class="text-xl font-semibold text-gray-800">
         Data Anggaran CSR 
     </h3>
-    <a href="{{ route('anggaran.create') }}"
-       class="inline-flex items-center gap-2 bg-green-300 border border-gray-300 text-gray-800 hover:bg-gray-100 hover:border-gray-400 px-4 py-2 rounded-lg shadow-sm transition-all duration-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-             viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M12 4v16m8-8H4"/>
-        </svg>
-        Tambah
-    </a>
+    
+    @if(in_array(auth()->user()->role, [1, 2]))
+        <a href="{{ route('anggaran.create') }}"
+           class="inline-flex items-center gap-2 bg-green-300 border border-gray-300 text-gray-800 hover:bg-gray-100 hover:border-gray-400 px-4 py-2 rounded-lg shadow-sm transition-all duration-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 4v16m8-8H4"/>
+            </svg>
+            Tambah
+        </a>
+    @endif
 </div>
+
 
     <form id="filterForm" class="mb-6">
         <div class="space-y-4">
