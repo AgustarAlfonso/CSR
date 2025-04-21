@@ -14,18 +14,6 @@ Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 // Error Pages
 Route::view('/errors/403', 'errors.403');
 
-// Route untuk role 1 dan 2 (contoh: Kelola CSR)
-Route::middleware(['auth', 'role:1,2'])->group(function () {
-    Route::prefix('csr')->name('csr.')->group(function () {
-        Route::get('/create', [CSRController::class, 'create'])->name('create');
-        Route::post('/store', [CSRController::class, 'store'])->name('store');
-        Route::get('/{csr}/edit', [CSRController::class, 'edit'])->name('edit');
-        Route::post('/{csr}', [CSRController::class, 'update'])->name('update');
-        Route::delete('/{csr}', [CSRController::class, 'destroy'])->name('destroy');
-    });
-});
-
-// Route untuk role 1, 2, 3 (contoh: Semua akses umum)
 Route::middleware(['auth', 'role:1,2,3'])->group(function () {
     Route::get('/profile', [AuthController::class, 'profile'])->name('auth.profile');
     Route::put('/profile', [AuthController::class, 'updateProfile'])->name('auth.profile.update');
@@ -42,6 +30,20 @@ Route::middleware(['auth', 'role:1,2,3'])->group(function () {
     Route::get('/hasil-filter', [CSRController::class, 'hasilFilter'])->name('csr.hasil_filter');
     Route::get('/sisa-anggaran', [CSRController::class, 'getSisaAnggaran'])->name('csr.sisa_anggaran');
 });
+
+// Route untuk role 1 dan 2 (contoh: Kelola CSR)
+Route::middleware(['auth', 'role:1,2'])->group(function () {
+    Route::prefix('csr')->name('csr.')->group(function () {
+        Route::get('/create', [CSRController::class, 'create'])->name('create');
+        Route::post('/store', [CSRController::class, 'store'])->name('store');
+        Route::get('/{csr}/edit', [CSRController::class, 'edit'])->name('edit');
+        Route::post('/{csr}', [CSRController::class, 'update'])->name('update');
+        Route::delete('/{csr}', [CSRController::class, 'destroy'])->name('destroy');
+    });
+});
+
+// Route untuk role 1, 2, 3 (contoh: Semua akses umum)
+
 
 // Route untuk role 1 aja (contoh: Kelola User)
 Route::middleware(['auth', 'role:1'])->group(function () {
