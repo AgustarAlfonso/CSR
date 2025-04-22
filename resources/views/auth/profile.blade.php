@@ -111,6 +111,41 @@
     </div>
 </div>
 
+<!-- Modal Error Password -->
+<div x-data="{ open: false }" x-show="open" 
+     x-transition 
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+     style="display: none;" 
+     @password-mismatch.window="open = true; setTimeout(() => open = false, 3000)">
+    <div class="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full text-center">
+        <h2 class="text-lg font-semibold text-red-600 mb-2">⚠️ Password Tidak Cocok</h2>
+        <p class="text-sm text-gray-600">Pastikan password baru dan konfirmasi password sama persis.</p>
+    </div>
+</div>
+<!-- Modal Password Terlalu Pendek -->
+<div x-data="{ open: false }" x-show="open" 
+     x-transition 
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+     style="display: none;" 
+     @password-too-short.window="open = true; setTimeout(() => open = false, 3000)">
+    <div class="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full text-center">
+        <h2 class="text-lg font-semibold text-red-600 mb-2">🔐 Password Terlalu Pendek</h2>
+        <p class="text-sm text-gray-600">Password minimal harus terdiri dari 6 karakter.</p>
+    </div>
+</div>
+<!-- Modal Sukses -->
+<div x-data="{ open: false }" x-show="open" 
+     x-transition 
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+     style="display: none;" 
+     @profile-updated.window="open = true; setTimeout(() => open = false, 3000)">
+    <div class="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full text-center">
+        <h2 class="text-lg font-semibold text-green-600 mb-2">✅ Berhasil!</h2>
+        <p class="text-sm text-gray-600">Data profil berhasil diperbarui.</p>
+    </div>
+</div>
+
+
 <script>
     function enableEdit(inputId) {
         const input = document.getElementById(inputId);
@@ -133,7 +168,7 @@
         })
         .then(response => response.json())
         .then(data => {
-            alert(data.message || 'Profil berhasil diperbarui!');
+            window.dispatchEvent(new CustomEvent('profile-updated'));
             document.getElementById('nameInput').disabled = true;
             document.getElementById('emailInput').disabled = true;
             document.getElementById('saveProfileWrapper').classList.add('hidden');
@@ -146,9 +181,14 @@
         const confirmPassword = document.getElementById('confirmPassword').value;
 
         if (newPassword !== confirmPassword) {
-            alert('Password tidak cocok.');
-            return;
-        }
+    window.dispatchEvent(new CustomEvent('password-mismatch'));
+    return;
+}
+if (newPassword.length < 6) {
+    window.dispatchEvent(new CustomEvent('password-too-short'));
+    return;
+}
+
 
         fetch('{{ route("auth.profile.update") }}', {
             method: 'PUT',
@@ -156,11 +196,12 @@
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
-            body: JSON.stringify({ password: newPassword })
+            body: JSON.stringify({ password: newPassword ,
+                password_confirmation: confirmPassword})
         })
         .then(response => response.json())
         .then(() => {
-            alert('Password berhasil diperbarui!');
+            window.dispatchEvent(new CustomEvent('profile-updated'));
             document.getElementById('newPassword').value = '';
             document.getElementById('confirmPassword').value = '';
         })

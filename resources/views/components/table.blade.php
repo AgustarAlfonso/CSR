@@ -44,7 +44,8 @@
                     <td class="px-3 py-2 whitespace-nowrap font-semibold text-green-600">Rp{{ number_format($row->realisasi_csr, 0, ',', '.') }}</td>
                     <td class="px-3 py-2 whitespace-normal break-words max-w-xs">{{ $row->ket == 'nan' ? '-' : $row->ket }}</td>
                     <td class="px-3 py-2">
-                        <div class="flex space-x-2 items-center">
+                      <div class="flex space-x-2 items-center">
+                        @if(in_array(Auth::user()->role, [1, 2]))
                             <!-- Edit -->
                             <a href="{{ route('csr.edit', $row->id) }}" 
                               title="Edit"
@@ -54,7 +55,7 @@
                                   d="M11 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5M18.5 2.5l-2 2m0 0L7 14v3h3L19.5 6.5l-2-2z" />
                               </svg>
                             </a>
-
+                    
                             <!-- Hapus -->
                             <button @click="showConfirmId = {{ $row->id }}"
                               class="bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-full transition duration-200 shadow-sm"
@@ -64,7 +65,9 @@
                                   d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4h6v3" />
                               </svg>
                             </button>
-                        </div>
+                        @endif
+                    </div>
+                    
 
                         <!-- Modal Konfirmasi -->
                         <div
