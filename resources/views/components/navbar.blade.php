@@ -17,7 +17,7 @@
   
               @if(in_array(auth()->user()->role, [1, 2]))
               <li>
-                <a class="text-gray-500 transition hover:text-gray-500/75" href="{{ route("csr.create") }}"> Tambah Program Kemiteraan </a>
+                <a class="text-gray-500 transition hover:text-gray-500/75" href="{{ route("csr.create") }}"> Tambah Program Kemitaraan </a>
               </li>
               @endif
   
