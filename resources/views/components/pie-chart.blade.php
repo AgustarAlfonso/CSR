@@ -8,6 +8,12 @@
     </div>
     <div class="card-body">
         <canvas id="csrPieChart"></canvas>
+        <div id="loadingSpinner" class="text-center mt-3" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+        
         <div id="chartInfo" class="mt-3 text-center"></div>
 
     </div>
@@ -15,6 +21,7 @@
 
 <script>
     let currentChartType = "pemegang_saham";
+    
 
     function updateChart(data, labels) {
     data = data.map(Number); // <- Ini tambahan penting!
@@ -31,7 +38,7 @@
             labels: labels,
             datasets: [{
                 data: data,
-                backgroundColor: ["#ff6384", "#36a2eb", "#ffce56", "#8bc34a", "#ff9800", "#9c27b0", "#00bcd4"]
+                backgroundColor: ["#2b9d48", "#b72027", "#f9a61a"]
             }]
         },
         options: {
@@ -61,6 +68,10 @@ function fetchFilteredData() {
         bulan: document.getElementById("bulan").value
     };
 
+    // SEMBUNYIKAN CHART, TAMPILKAN SPINNER
+    document.getElementById("csrPieChart").style.display = "none";
+    document.getElementById("loadingSpinner").style.display = "block";
+
     let url = currentChartType === "bidang_kegiatan"
         ? "{{ route('csr.chart.bidang_kegiatan') }}"
         : "{{ route('csr.filter') }}";
@@ -71,6 +82,9 @@ function fetchFilteredData() {
         data: filters,
         headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
         success: function(response) {
+            document.getElementById("loadingSpinner").style.display = "none";
+            document.getElementById("csrPieChart").style.display = "block"; // TAMPILKAN CHART
+
             if (currentChartType === "bidang_kegiatan") {
                 updateChart(response.data, response.labels);
             } else {
@@ -84,10 +98,13 @@ function fetchFilteredData() {
             }
         },
         error: function(xhr, status, error) {
+            document.getElementById("loadingSpinner").style.display = "none";
+            document.getElementById("csrPieChart").style.display = "block"; // Tetap ditampilkan biar user bisa coba lagi
             console.error("AJAX Error:", error);
         }
     });
 }
+
 
 
 

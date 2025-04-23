@@ -7,7 +7,12 @@
         </div>
     </div>
     <div class="card-body">
-        <canvas id="csrBarChart"></canvas>
+        <canvas id="csrBarChart" ></canvas>
+        <div id="loadingSpinner2" class="text-center mt-3" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -31,7 +36,7 @@
             datasets: [{
                 label: "CSR (Rp)",
                 data: data,
-                backgroundColor: ["#36a2eb", "#4bc0c0", "#ff6384"], // Warna sesuai kategori
+                backgroundColor: ["#2b9d48", "#b72027", "#f9a61a"], // Warna sesuai kategori
             }]
         },
         options: {
@@ -66,6 +71,10 @@
         bulan: $('#bulan').val(),
     };
 
+    document.getElementById("csrBarChart").style.display = "none"; // SEMBUNYIKAN CHART
+    document.getElementById("loadingSpinner2").style.display = "block";
+
+
     $.ajax({
         url: '{{ route("csr.filter") }}',
         type: 'POST',
@@ -73,6 +82,10 @@
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
         success: function(response) {
             console.log("Filtered Bar Chart Data:", response);
+            document.getElementById("loadingSpinner2").style.display = "none";
+            document.getElementById("csrBarChart").style.display = "block"; // TAMPILKAN CHART
+
+
 
             // Konversi ke number biar nggak ada NaN
             let jumlahAnggaran = parseFloat(response.jumlah_anggaran) || 0;
@@ -99,12 +112,19 @@ function loadBarChartByBidangKegiatan() {
         bulan: $('#bulan').val(),
     };
 
+    document.getElementById("loadingSpinner2").style.display = "block";
+
+
     $.ajax({
         url: '{{ route("csr.chart.bidang_kegiatan") }}',
         type: 'POST',
         data: filters,
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
         success: function(response) {
+            document.getElementById("loadingSpinner2").style.display = "none";
+document.getElementById("csrBarChart").style.display = "block"; // TAMPILKAN CHART
+
+
             console.log("Bar Chart (Bidang Kegiatan):", response);
 
             // Konversi nilai ke number
@@ -114,6 +134,8 @@ function loadBarChartByBidangKegiatan() {
             updateBarChart(data, labels);
         },
         error: function(xhr) {
+            document.getElementById("loadingSpinner").style.display = "none";
+
             console.error(xhr.responseText);
         }
     });
