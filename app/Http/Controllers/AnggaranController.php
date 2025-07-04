@@ -6,7 +6,6 @@ use App\Models\AnggaranCsr as Anggaran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\AnggaranCsr;
-use App\Models\PenambahanAnggaran;
 use Carbon\Carbon;
 
 class AnggaranController extends Controller
@@ -203,15 +202,7 @@ class AnggaranController extends Controller
             ]);
             
     
-            // Simpan histori penambahan
-            PenambahanAnggaran::create([
-                'anggaran_csr_id' => $newAnggaran->id,
-                'dana_baru' => $jumlahBaru,
-                'sisa_tahun_lalu' => $sisaTahunLalu,
-                'total_anggaran_tahun_ini' => $totalTahunIni,
-                'tanggal_input' => now(),
-            ]);
-    
+
             return redirect()->route('anggaran.index')->with('success', 'Anggaran baru berhasil ditambahkan.');
         }
     

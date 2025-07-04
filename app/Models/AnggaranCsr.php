@@ -65,10 +65,7 @@ public function getSisaAnggaranPerBulan($filterBidangKegiatan = null)
 
 
     
-public function penambahan()
-{
-    return $this->hasOne(PenambahanAnggaran::class, 'anggaran_csr_id');
-}
+
 
 public function hitungSisaAnggaranTotal()
 {
